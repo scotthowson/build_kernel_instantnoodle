@@ -6,7 +6,8 @@
 - [Prerequisites and Warnings](#prerequisites-and-warnings)
   - [Setting up Your Build Environment](#setting-up-your-build-environment)
     - [How to Build](#how-to-build)
-
+      - [How to Flash](#how-to-flash)
+      - [Flashing Recovery](#flashing-recovery)
 ## Prerequisites and Warnings
 > [!NOTE] 
 > OnePlus 8 (instantnoodle).
@@ -39,13 +40,25 @@ docker exec -it Ubuntu-20.04 bash
 
 To build this project:
 ```bash
-git clone https://github.com/IllSaft/oneplus-instantnoodle.git
-cd oneplus-instantnoodle
+git clone https://github.com/scotthowson/halium_kernel_instantnoodle
+cd halium_kernel_instantnoodle
 chmod +x build.sh
 ./build.sh -b instantnoodle
 ./build/prepare-fake-ota.sh out/device_instantnoodle_usrmerge.tar.xz ota
 ./build/system-image-from-ota.sh ota/ubuntu_command Images/instantnoodle-a10
+```
+
 # If built successfully, your system images will be in 'Images/instantnoodle-a10/'
+
+## How to Flash
+### Using System Partition
+```bash
+adb devices
+adb reboot fastboot
+fastboot delete-logical-partition product_a
+fastboot flash boot boot.img
+fastboot flash system system.img
+fastboot flash vbmeta --disable-verity --disable-verification vbmeta.img
 ```
 
 ## Getting Started with SSH & Telnet!
