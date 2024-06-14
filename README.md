@@ -47,8 +47,7 @@ chmod +x build.sh
 ./build/prepare-fake-ota.sh out/device_instantnoodle_usrmerge.tar.xz ota
 ./build/system-image-from-ota.sh ota/ubuntu_command Images/instantnoodle-a10
 ```
-
-# If built successfully, your system images will be in 'Images/instantnoodle-a10/'
+If built successfully, your system images will be in 'Images/instantnoodle-a10/'
 
 ## How to Flash
 ### Using System Partition
