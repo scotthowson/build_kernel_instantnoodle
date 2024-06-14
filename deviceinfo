@@ -21,7 +21,7 @@ deviceinfo_kernel_llvm_compile="false"
 deviceinfo_kernel_use_lld="false"
 deviceinfo_kernel_use_dtc_ext="true"
 deviceinfo_kernel_image_name="Image"
-deviceinfo_system_partition_size="4300M"
+# deviceinfo_system_partition_size="4300M"
 
 ##############
 # Boot image
