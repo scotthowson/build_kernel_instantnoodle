@@ -3,7 +3,7 @@ set -xe
 
 # Define branches for adaptation tools and overlay
 ADAPTATION_TOOLS_BRANCH=main
-ADAPTATION_OVERLAY_BRANCH=android-10
+ADAPTATION_OVERLAY_BRANCH=test-branch
 
 # Function to download a file using wget or curl
 download_file() {
@@ -72,6 +72,11 @@ if [ ! -d recovery ]; then
   mkdir recovery
   download_files
 fi
+
+# Modify line 57 in build-kernel.sh
+echo "Modifying line 57 in build-kernel.sh..."
+sed -i '57s/.*/make O="$OUT" $MAKEOPTS -j16/' ./build/build-kernel.sh
+
 # Re-enable set -x
 set -x
 
