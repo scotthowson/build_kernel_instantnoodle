@@ -174,57 +174,104 @@ systemctl enable ssh
 
 ---
 
-### Features & Usability
+## Features & Usability
 
-| 20.04 - focal | 16.04 - xenial |
-|---------------|----------------|
-| Core Connectivity: State: Basic support |
+### Core Connectivity
+**State: Basic support**
 
-**Automated Usability** (beta)
-
+**Automated Usability (beta)**  
 The device has basic data capabilities and can connect to mobile networks (as applicable), but currently offers minimal features, and some of the smart functionalities might not work yet. It can be a very nice second device.
 
-| Actors        |                |              |               |               |               |               |               |               |
-|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| ✔ Manual brightness | ✔ Torchlight | ✔ Vibration |               |               |               |               |               |               |
+### Actors
+| Feature           | Status |
+|-------------------|--------|
+| Manual brightness | ✔      |
+| Torchlight        | ✔      |
+| Vibration         | ✔      |
 
-| Camera        |                |              |               |               |               |               |               |               |
-|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| ✔ Flashlight  | ✔ Photo        | ✔ Video      | ✔ Switching between cameras |               |               |               |               |               |
+### Camera
+| Feature                       | Status |
+|-------------------------------|--------|
+| Flashlight                    | ✔      |
+| Photo                         | ✔      |
+| Video                         | ✔      |
+| Switching between cameras     | ✔      |
 
-| Cellular      |                |              |               |               |               |               |               |               |
-|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| ⚠ Dual SIM functionality (Global Issue) | ✔ Carrier info, signal strength | ✔ Data connection | ⚠ Incoming, outgoing calls (Global Issue) | ✔ MMS in, out | ✔ PIN unlock | ✔ SMS in, out | ✔ Change audio routings | ✔ Voice in calls | ✔ Volume control in calls |
+### Cellular
+| Feature                         | Status |
+|---------------------------------|--------|
+| Dual SIM functionality (Global Issue) | ⚠ |
+| Carrier info, signal strength   | ✔      |
+| Data connection                 | ✔      |
+| Incoming, outgoing calls (Global Issue) | ⚠ |
+| MMS in, out                     | ✔      |
+| PIN unlock                      | ✔      |
+| SMS in, out                     | ✔      |
+| Change audio routings           | ✔      |
+| Voice in calls                  | ✔      |
+| Volume control in calls         | ✔      |
 
-| Endurance     |                |              |               |               |               |               |               |               |
-|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| ✔ 24+ hours battery lifetime | ✔ 7+ days stability |               |               |               |               |               |               |               |
+### Endurance
+| Feature                  | Status |
+|--------------------------|--------|
+| 24+ hours battery lifetime | ✔      |
+| 7+ days stability         | ✔      |
 
-| GPU           |                |              |               |               |               |               |               |               |
-|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| ✔ Boot into UI | ✔ Hardware video playback |               |               |               |               |               |               |               |
+### GPU
+| Feature                   | Status |
+|---------------------------|--------|
+| Boot into UI              | ✔      |
+| Hardware video playback   | ✔      |
 
-| Misc          |                |              |               |               |               |               |               |               |
-|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| ✔ AppArmor patches | ✔ Battery percentage | ⚠ Offline charging | ✔ Online charging | ✔ Recovery image | ✔ Reset to factory defaults | ✔ RTC time | ✔ Shutdown / Reboot | ✔ Wireless External monitor | ✔ Waydroid |
+### Misc
+| Feature                       | Status |
+|-------------------------------|--------|
+| AppArmor patches              | ✔      |
+| Battery percentage            | ✔      |
+| Offline charging              | ⚠      |
+| Online charging               | ✔      |
+| Recovery image                | ✔      |
+| Reset to factory defaults     | ✔      |
+| RTC time                      | ✔      |
+| Shutdown / Reboot             | ✔      |
+| Wireless External monitor     | ✔      |
+| Waydroid                      | ✔      |
 
-| Network       |                |              |               |               |               |               |               |               |
-|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| ✔ Bluetooth   | ✔ Flight mode  | ✔ Hotspot    | ✔ NFC         | ✔ WiFi        |               |               |               |               |
+### Network
+| Feature    | Status |
+|------------|--------|
+| Bluetooth  | ✔      |
+| Flight mode| ✔      |
+| Hotspot    | ✔      |
+| NFC        | ✔      |
+| WiFi       | ✔      |
 
-| Sensors       |                |              |               |               |               |               |               |               |
-|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| ✔ Automatic brightness | ✔ Fingerprint reader | ⚠ GPS (Global Issue) | ✔ Proximity | ✔ Rotation | ✔ Touchscreen | ✔ Double touch to wake |               |               |
+### Sensors
+| Feature                  | Status |
+|--------------------------|--------|
+| Automatic brightness     | ✔      |
+| Fingerprint reader       | ✔      |
+| GPS (Global Issue)       | ⚠      |
+| Proximity                | ✔      |
+| Rotation                 | ✔      |
+| Touchscreen              | ✔      |
+| Double touch to wake     | ✔      |
 
-| Sound         |                |              |               |               |               |               |               |               |
-|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| ✔ Earphones   | ✔ Loudspeaker  | ⚠ Microphone | ✔ Volume control |               |               |               |               |               |
+### Sound
+| Feature                  | Status |
+|--------------------------|--------|
+| Earphones                | ✔      |
+| Loudspeaker              | ✔      |
+| Microphone               | ⚠      |
+| Volume control           | ✔      |
 
-| USB           |                |              |               |               |               |               |               |               |
-|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
-| ✔ MTP access  | ✔ ADB access   |               |               |               |               |               |               |               |
+### USB
+| Feature                  | Status |
+|--------------------------|--------|
+| MTP access               | ✔      |
+| ADB access               | ✔      |
 
-### Feature Legend
+## Feature Legend
 
 - ✔ Working: Confirmed, depending on the maintenance
 - ⚠ Not Working: If there is a link here, follow it to learn more
