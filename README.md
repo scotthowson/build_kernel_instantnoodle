@@ -165,6 +165,71 @@ systemctl enable usb-tethering
 systemctl enable ssh
 ```
 
+# OnePlus 8
+
+![Halium 10.0](https://img.shields.io/badge/Halium-10.0-orange)
+![instantnoodle](https://img.shields.io/badge/CodeName-instantnoodle-green)
+![Installer](https://img.shields.io/badge/Installer-Available-brightgreen)
+![Buy](https://img.shields.io/badge/Buy-Available-blue)
+
+---
+
+### Features & Usability
+
+| 20.04 - focal | 16.04 - xenial |
+|---------------|----------------|
+| Core Connectivity: State: Basic support |
+
+**Automated Usability** (beta)
+
+The device has basic data capabilities and can connect to mobile networks (as applicable), but currently offers minimal features, and some of the smart functionalities might not work yet. It can be a very nice second device.
+
+| Actors        |                |              |               |               |               |               |               |               |
+|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
+| ✔ Manual brightness | ✔ Torchlight | ✔ Vibration |               |               |               |               |               |               |
+
+| Camera        |                |              |               |               |               |               |               |               |
+|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
+| ✔ Flashlight  | ✔ Photo        | ✔ Video      | ✔ Switching between cameras |               |               |               |               |               |
+
+| Cellular      |                |              |               |               |               |               |               |               |
+|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
+| ⚠ Dual SIM functionality (Global Issue) | ✔ Carrier info, signal strength | ✔ Data connection | ⚠ Incoming, outgoing calls (Global Issue) | ✔ MMS in, out | ✔ PIN unlock | ✔ SMS in, out | ✔ Change audio routings | ✔ Voice in calls | ✔ Volume control in calls |
+
+| Endurance     |                |              |               |               |               |               |               |               |
+|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
+| ✔ 24+ hours battery lifetime | ✔ 7+ days stability |               |               |               |               |               |               |               |
+
+| GPU           |                |              |               |               |               |               |               |               |
+|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
+| ✔ Boot into UI | ✔ Hardware video playback |               |               |               |               |               |               |               |
+
+| Misc          |                |              |               |               |               |               |               |               |
+|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
+| ✔ AppArmor patches | ✔ Battery percentage | ⚠ Offline charging | ✔ Online charging | ✔ Recovery image | ✔ Reset to factory defaults | ✔ RTC time | ✔ Shutdown / Reboot | ✔ Wireless External monitor | ✔ Waydroid |
+
+| Network       |                |              |               |               |               |               |               |               |
+|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
+| ✔ Bluetooth   | ✔ Flight mode  | ✔ Hotspot    | ✔ NFC         | ✔ WiFi        |               |               |               |               |
+
+| Sensors       |                |              |               |               |               |               |               |               |
+|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
+| ✔ Automatic brightness | ✔ Fingerprint reader | ⚠ GPS (Global Issue) | ✔ Proximity | ✔ Rotation | ✔ Touchscreen | ✔ Double touch to wake |               |               |
+
+| Sound         |                |              |               |               |               |               |               |               |
+|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
+| ✔ Earphones   | ✔ Loudspeaker  | ⚠ Microphone | ✔ Volume control |               |               |               |               |               |
+
+| USB           |                |              |               |               |               |               |               |               |
+|---------------|----------------|--------------|---------------|---------------|---------------|---------------|---------------|---------------|
+| ✔ MTP access  | ✔ ADB access   |               |               |               |               |               |               |               |
+
+### Feature Legend
+
+- ✔ Working: Confirmed, depending on the maintenance
+- ⚠ Not Working: If there is a link here, follow it to learn more
+- ⚠ Partial: Working to some extent but with issues
+- ⚠ Global Issue: Issue is not specific to this device
 
 ## Contributing
 [Contributions](https://docs.ubports.com/en/latest/contribute/index.html) to this guide are welcome. If you have suggestions or corrections, please submit a pull request or open an issue on the GitHub repository.
