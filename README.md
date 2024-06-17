@@ -1,3 +1,4 @@
+@ -1,289 +1,2 @@
 # Ubuntu Touch for OnePlus 8 (instantnoodle)
 
 ## Contents
@@ -287,3 +288,4 @@ Acknowledgments to individuals or sources that have contributed to this guide.
 
 ## Special Thanks
 A heartfelt thank you to [DaniAsh551](https://gitlab.com/DaniAsh551) and their [OnePlus Kebab repository](https://gitlab.com/DaniAsh551/oneplus-kebab) for their invaluable assistance and patience throughout the development of this project. Their contributions and guidance have been instrumental in its success.
+
