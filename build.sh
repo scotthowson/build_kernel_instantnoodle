@@ -24,9 +24,9 @@ download_file() {
 # Function to download multiple files
 download_files() {
     local files=(
-        "recovery/OrangeFox_R11.1-InstantNoodle-Recovery.img|wget|https://github.com/Wishmasterflo/android_device_oneplus_kebab/releases/download/V15/OrangeFox-R11.1-Unofficial-OnePlus8T_9R-V15.img"
-        "recovery/TWRP-InstantNoodle-Recovery.img|wget|https://github.com/scotthowson/twrp_device_oneplus_instantnoodle/releases/download/v1.0.12/twrp-howsondev-v1.0.12.img"
-        "recovery/LineageOS-18.1-Recovery.img|wget|https://github.com/IllSaft/los18.1-recovery/releases/download/0.1/LineageOS-18.1-Recovery.img"
+        "recovery/orangefox_R11.1-InstantNoodle-Recovery.img|wget|https://github.com/Wishmasterflo/android_device_oneplus_kebab/releases/download/V15/OrangeFox-R11.1-Unofficial-OnePlus8T_9R-V15.img"
+        "recovery/twrp-HowsonDev-Recovery.img|wget|https://github.com/scotthowson/twrp_device_oneplus_instantnoodle/releases/download/v1.0.12/twrp-howsondev-v1.0.12.img"
+        "recovery/lineageOS-18.1-Recovery.img|wget|https://github.com/IllSaft/los18.1-recovery/releases/download/0.1/LineageOS-18.1-Recovery.img"
     )
 
     for entry in "${files[@]}"; do
@@ -52,7 +52,7 @@ if [ ! -d overlay ]; then
   # Move all files and directories, including hidden ones, excluding .git to prevent conflicts
   echo "Moving files from temporary directory..."
   shopt -s dotglob
-  mv $TEMP_DIR/* $TEMP_DIR/.* . || true
+  rsync -av --ignore-existing $TEMP_DIR/ ./
   shopt -u dotglob
 
   # Remove the temporary directory
@@ -60,9 +60,9 @@ if [ ! -d overlay ]; then
   rm -rf $TEMP_DIR
 fi
 
-# Insert HAS_DYNAMIC_PARTITIONS=true at line 43 in make-bootimage.sh
-echo "Inserting HAS_DYNAMIC_PARTITIONS=true in make-bootimage.sh..."
-sed -i '43 i\    HAS_DYNAMIC_PARTITIONS=true' ./build/make-bootimage.sh
+# Insert HAS_DYNAMIC_PARTITIONS=true at line 43 in make-bootimage.sh only if it doesn't already exist
+echo "Inserting HAS_DYNAMIC_PARTITIONS=true in make-bootimage.sh if not present..."
+grep -qxF 'HAS_DYNAMIC_PARTITIONS=true' ./build/make-bootimage.sh || sed -i '43 i\    HAS_DYNAMIC_PARTITIONS=true' ./build/make-bootimage.sh
 
 # Disable set -x for recovery downloads
 set +x
