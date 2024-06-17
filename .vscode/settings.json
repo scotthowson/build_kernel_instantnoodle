@@ -3,6 +3,8 @@
         "osif_sync.h": "c",
         "wlan_hdd_includes.h": "c",
         "wlan_mlme_public_struct.h": "c",
-        "wlan_policy_mgr_api.h": "c"
+        "wlan_policy_mgr_api.h": "c",
+        "sde_hw_lm.h": "c",
+        "msm_drv.h": "c"
     }
 }
