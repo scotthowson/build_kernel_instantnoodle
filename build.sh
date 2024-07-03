@@ -3,7 +3,7 @@ set -xe
 
 # Define branches for adaptation tools and overlay
 ADAPTATION_TOOLS_BRANCH=main
-ADAPTATION_OVERLAY_BRANCH=test-branch
+ADAPTATION_OVERLAY_BRANCH=android-10
 
 # Function to download a file using wget or curl
 download_file() {
