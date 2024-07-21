@@ -1,4 +1,3 @@
-@ -1,289 +1,2 @@
 # Ubuntu Touch for OnePlus 8 (instantnoodle)
 
 ## Contents
@@ -44,10 +43,15 @@ To build this project:
 git clone https://github.com/scotthowson/halium_kernel_instantnoodle
 cd halium_kernel_instantnoodle
 chmod +x build.sh
-./build.sh -b instantnoodle
+./build.sh -b Instantnoodle
 ./build/prepare-fake-ota.sh out/device_instantnoodle_usrmerge.tar.xz ota
 ./build/system-image-from-ota.sh ota/ubuntu_command Images/instantnoodle-a10
 ```
+To rebuild this project:
+```bash
+sudo rm -rf Instantnoodle/downloads/KERNEL_OBJ/ Instantnoodle/downloads/halium_instantnoodle_linux_kernel/ Instantnoodle/tmp/ overlay/
+```
+
 If built successfully, your system images will be in 'Images/instantnoodle-a10/'
 
 ## How to Flash
@@ -171,113 +175,52 @@ systemctl enable ssh
 ![Halium 10.0](https://img.shields.io/badge/Halium-10.0-orange)
 ![instantnoodle](https://img.shields.io/badge/CodeName-instantnoodle-green)
 ![Installer](https://img.shields.io/badge/Installer-Available-brightgreen)
-![Buy](https://img.shields.io/badge/Buy-Available-blue)
 
 ---
 
 ## Features & Usability
 
-### Core Connectivity
-**State: Basic support**
+# What works so far?
 
-**Automated Usability (beta)**  
-The device has basic data capabilities and can connect to mobile networks (as applicable), but currently offers minimal features, and some of the smart functionalities might not work yet. It can be a very nice second device.
+### Progress
+![100%](https://progress-bar.dev/100) Ubuntu 20.04 Focal
 
-### Actors
-| Feature           | Status |
-|-------------------|--------|
-| Manual brightness | ✔      |
-| Torchlight        | ✔      |
-| Vibration         | ✔      |
+- [ ] Recovery
+- [X] Boot
+- [ ] Bluetooth
+- [X] Camera Photos
+- [ ] Video Recording
+- [?] GPS
+- [X] Audio works
+- [ ] Bluetooth Audio
+- [X] Waydroid
+- [X] MTP
+- [ ] ADB
+- [X] SSH
+- [X] Online charge
+- [X] Offline Charge
+- [?] Wifi
+- [X] Calls
+- [X] Mobile Data 2G/3G/4G (LTE)
+- [X] Ofono
+- [ ] Wireless display
+- [ ] Fingerprint Reader
+- [X] OTG Works
+- [X] Camera Flash
+- [X] Manual Brightness Works
+- [X] Switching between cameras
+- [ ] Hardware video playback
+- [X] Rotation
+- [ ] Proximity sensor
+- [X] Virtualization
+- [X] GPU
+- [ ] Lightsensor
+- [ ] Proximity sensor
+- [?] Automatic brightness
+- [X] Torch
+- [?] Hotspot
+- [X] Airplane Mode
 
-### Camera
-| Feature                       | Status |
-|-------------------------------|--------|
-| Flashlight                    | ✔      |
-| Photo                         | ✔      |
-| Video                         | ✔      |
-| Switching between cameras     | ✔      |
-
-### Cellular
-| Feature                         | Status |
-|---------------------------------|--------|
-| Dual SIM functionality (Global Issue) | ⚠ |
-| Carrier info, signal strength   | ✔      |
-| Data connection                 | ✔      |
-| Incoming, outgoing calls (Global Issue) | ⚠ |
-| MMS in, out                     | ✔      |
-| PIN unlock                      | ✔      |
-| SMS in, out                     | ✔      |
-| Change audio routings           | ✔      |
-| Voice in calls                  | ✔      |
-| Volume control in calls         | ✔      |
-
-### Endurance
-| Feature                  | Status |
-|--------------------------|--------|
-| 24+ hours battery lifetime | ✔      |
-| 7+ days stability         | ✔      |
-
-### GPU
-| Feature                   | Status |
-|---------------------------|--------|
-| Boot into UI              | ✔      |
-| Hardware video playback   | ✔      |
-
-### Misc
-| Feature                       | Status |
-|-------------------------------|--------|
-| AppArmor patches              | ✔      |
-| Battery percentage            | ✔      |
-| Offline charging              | ⚠      |
-| Online charging               | ✔      |
-| Recovery image                | ✔      |
-| Reset to factory defaults     | ✔      |
-| RTC time                      | ✔      |
-| Shutdown / Reboot             | ✔      |
-| Wireless External monitor     | ✔      |
-| Waydroid                      | ✔      |
-
-### Network
-| Feature    | Status |
-|------------|--------|
-| Bluetooth  | ✔      |
-| Flight mode| ✔      |
-| Hotspot    | ✔      |
-| NFC        | ✔      |
-| WiFi       | ✔      |
-
-### Sensors
-| Feature                  | Status |
-|--------------------------|--------|
-| Automatic brightness     | ✔      |
-| Fingerprint reader       | ✔      |
-| GPS (Global Issue)       | ⚠      |
-| Proximity                | ✔      |
-| Rotation                 | ✔      |
-| Touchscreen              | ✔      |
-| Double touch to wake     | ✔      |
-
-### Sound
-| Feature                  | Status |
-|--------------------------|--------|
-| Earphones                | ✔      |
-| Loudspeaker              | ✔      |
-| Microphone               | ⚠      |
-| Volume control           | ✔      |
-
-### USB
-| Feature                  | Status |
-|--------------------------|--------|
-| MTP access               | ✔      |
-| ADB access               | ✔      |
-
-## Feature Legend
-
-- ✔ Working: Confirmed, depending on the maintenance
-- ⚠ Not Working: If there is a link here, follow it to learn more
-- ⚠ Partial: Working to some extent but with issues
-- ⚠ Global Issue: Issue is not specific to this device
 
 ## Contributing
 [Contributions](https://docs.ubports.com/en/latest/contribute/index.html) to this guide are welcome. If you have suggestions or corrections, please submit a pull request or open an issue on the GitHub repository.
@@ -288,4 +231,3 @@ Acknowledgments to individuals or sources that have contributed to this guide.
 
 ## Special Thanks
 A heartfelt thank you to [DaniAsh551](https://gitlab.com/DaniAsh551) and their [OnePlus Kebab repository](https://gitlab.com/DaniAsh551/oneplus-kebab) for their invaluable assistance and patience throughout the development of this project. Their contributions and guidance have been instrumental in its success.
-

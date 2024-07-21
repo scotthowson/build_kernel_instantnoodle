@@ -73,7 +73,7 @@ deviceinfo_ramdisk_compression="gzip"
 # Recovery
 ###########
 
-# # # deviceinfo_has_recovery_partition="true"
+# deviceinfo_has_recovery_partition="true"
 
 #################
 # Miscellaneous
