@@ -54,6 +54,17 @@ sudo rm -rf Instantnoodle/downloads/KERNEL_OBJ/ Instantnoodle/downloads/halium_i
 
 If built successfully, your system images will be in 'Images/instantnoodle-a10/'
 
+## Delete logic partitions:
+```console
+fastboot delete-logical-partition system_ext_a
+fastboot delete-logical-partition system_ext_b
+fastboot delete-logical-partition product_a
+fastboot delete-logical-partition product_b
+fastboot delete-logical-partition system_b
+fastboot delete-logical-partition vendor_b
+fastboot delete-logical-partition odm_b
+```
+
 ## How to Flash
 ### Using System Partition
 ```bash
@@ -64,6 +75,40 @@ fastboot flash boot boot.img
 fastboot flash system system.img
 fastboot flash vbmeta --disable-verity --disable-verification vbmeta.img
 ```
+
+# Formatting `userdata` Partition on Android
+
+## Steps
+
+1. **Open ADB Shell**:
+    ```sh
+    adb shell
+    ```
+
+2. **Unmount `data` Partition**:
+    ```sh
+    umount -a
+    ```
+
+3. **Format `userdata` Partition**:
+    ```sh
+    mkfs.ext4 /dev/block/bootdevice/by-name/userdata
+    ```
+
+4. **Reboot the Device**:
+    ```sh
+    adb reboot
+    ```
+
+## Notes
+- Ensure `/data` is unmounted before formatting.
+- Use Fastboot if ADB fails:
+    ```sh
+    adb reboot bootloader
+    fastboot erase userdata
+    fastboot format:ext4 userdata
+    fastboot reboot
+    ```
 
 ## Getting Started with SSH & Telnet!
 First we will be setting the device to be called OnePlus-8

@@ -41,30 +41,22 @@ modify_system_image_script() {
     fi
 }
 
-# Function to set recovery partition option in deviceinfo
-set_recovery_partition_option() {
+# Function to set or unset options in deviceinfo file
+set_deviceinfo_option() {
+    local option=$1
+    local value=$2
     local deviceinfo_file="./deviceinfo"
     if [ -f "$deviceinfo_file" ]; then
-        if [ "$INCLUDE_RECOVERY_PARTITION" = true ]; then
-            echo "Setting recovery partition option in deviceinfo..."
-            sed -i 's|# deviceinfo_has_recovery_partition="true"|deviceinfo_has_recovery_partition="true"|g' "$deviceinfo_file"
+        if [ "$value" = true ]; then
+            echo "Setting $option option in deviceinfo..."
+            # Uncomment the line if it is commented
+            sed -i "s|# $option=\"true\"|$option=\"true\"|g" "$deviceinfo_file"
+            # Add the line if it does not exist
+            grep -qxF "$option=\"true\"" "$deviceinfo_file" || echo "$option=\"true\"" >> "$deviceinfo_file"
         else
-            echo "Removing recovery partition option in deviceinfo..."
-            sed -i 's|deviceinfo_has_recovery_partition="true"|# deviceinfo_has_recovery_partition="true"|g' "$deviceinfo_file"
-        fi
-    fi
-}
-
-# Function to set vbmeta option in deviceinfo
-set_vbmeta_option() {
-    local deviceinfo_file="./deviceinfo"
-    if [ -f "$deviceinfo_file" ]; then
-        if [ "$INCLUDE_VBMETA" = true ]; then
-            echo "Setting vbmeta option in deviceinfo..."
-            sed -i 's|# deviceinfo_bootimg_append_vbmeta="true"|deviceinfo_bootimg_append_vbmeta="true"|g' "$deviceinfo_file"
-        else
-            echo "Removing vbmeta option in deviceinfo..."
-            sed -i 's|deviceinfo_bootimg_append_vbmeta="true"|# deviceinfo_bootimg_append_vbmeta="true"|g' "$deviceinfo_file"
+            echo "Removing $option option in deviceinfo..."
+            # Comment the line if it is uncommented
+            sed -i "s|^$option=\"true\"|# $option=\"true\"|g" "$deviceinfo_file"
         fi
     fi
 }
@@ -115,10 +107,10 @@ fi
 modify_system_image_script
 
 # Set recovery partition option in deviceinfo
-set_recovery_partition_option
+set_deviceinfo_option "deviceinfo_has_recovery_partition" $INCLUDE_RECOVERY_PARTITION
 
 # Set vbmeta option in deviceinfo
-set_vbmeta_option
+set_deviceinfo_option "deviceinfo_bootimg_append_vbmeta" $INCLUDE_VBMETA
 
 # Disable set -x for recovery downloads
 set +x
