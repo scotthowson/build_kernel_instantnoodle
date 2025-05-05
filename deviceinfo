@@ -75,4 +75,4 @@ deviceinfo_has_recovery_partition="true"
 ################
 
 # deviceinfo_system_partition_size="3000M"
-deviceinfo_use_overlaystore="true"
+# deviceinfo_use_overlaystore="true"
