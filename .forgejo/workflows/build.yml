@@ -46,8 +46,12 @@ jobs:
           apt-get install -y --no-install-recommends \
             bc bison build-essential ca-certificates cpio curl fakeroot flex git kmod \
             libelf-dev libssl-dev libtinfo5 lz4 python2 python3 sudo unzip wget xz-utils \
-            pahole libbpf-dev img2simg jq zstd rsync nodejs
+            pahole libbpf-dev img2simg jq zstd rsync gnupg
           ln -sf python2 /usr/bin/python
+          # JavaScript actions (checkout, upload-artifact) need Node 20; Ubuntu 22.04 ships Node 12.
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt-get install -y nodejs
+          node --version
 
       - name: Checkout
         uses: https://code.forgejo.org/actions/checkout@v4
