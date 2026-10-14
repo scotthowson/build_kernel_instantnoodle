@@ -29,6 +29,10 @@ on:
         description: "Publish the images as a GitHub pre-release (tag test-<run number>)"
         type: boolean
         default: false
+      kernel_branch:
+        description: "Kernel branch to build instead of the one in deviceinfo (e.g. Halium-10-Test)"
+        type: string
+        default: ""
 
 env:
   TOOLS_BRANCH: ${{ inputs.build_tools_branch || 'main' }}
@@ -60,6 +64,12 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Override kernel branch
+        if: inputs.kernel_branch != ''
+        run: |
+          sed -i 's|^deviceinfo_kernel_source_branch=.*|deviceinfo_kernel_source_branch="${{ inputs.kernel_branch }}"|' deviceinfo
+          grep deviceinfo_kernel_source_branch deviceinfo
 
       - name: Clone build tools
         run: git clone -b "$TOOLS_BRANCH" https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools.git build

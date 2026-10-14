@@ -1,0 +1,101 @@
+# Forgejo Actions flavour of .github/workflows/build.yml (for git.howson.dev).
+#
+# Runner: forgejo-runner on a machine with Docker, registered with a label that maps to
+# a Docker image, e.g.   docker:docker://node:20-bookworm   (see RUNNER.md).
+# The job itself runs in ubuntu:22.04 via "container:", so the label image only hosts the agent.
+name: Build Ubuntu Touch images
+
+on:
+  push:
+    branches: [android-10-testing]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      flashable:
+        description: "Also build the rootfs (ubuntu.img) from the latest 24.04 OTA"
+        type: boolean
+        default: true
+      release:
+        description: "Publish the images as a pre-release (tag test-<run number>)"
+        type: boolean
+        default: false
+      kernel_branch:
+        description: "Kernel branch to build instead of the one in deviceinfo"
+        type: string
+        default: ""
+      build_tools_branch:
+        description: "halium-generic-adaptation-build-tools branch"
+        type: string
+        default: main
+
+env:
+  TOOLS_BRANCH: ${{ inputs.build_tools_branch || 'main' }}
+  DEBIAN_FRONTEND: noninteractive
+  FLASHABLE: ${{ (github.event_name == 'workflow_dispatch' && inputs.flashable) || startsWith(github.ref, 'refs/tags/v') }}
+
+jobs:
+  build:
+    runs-on: docker
+    container:
+      image: ubuntu:22.04
+      options: --privileged
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            bc bison build-essential ca-certificates cpio curl fakeroot flex git kmod \
+            libelf-dev libssl-dev libtinfo5 lz4 python2 python3 sudo unzip wget xz-utils \
+            pahole libbpf-dev img2simg jq zstd rsync nodejs
+          ln -sf python2 /usr/bin/python
+
+      - name: Checkout
+        uses: https://code.forgejo.org/actions/checkout@v4
+
+      - name: Override kernel branch
+        if: inputs.kernel_branch != ''
+        run: |
+          sed -i 's|^deviceinfo_kernel_source_branch=.*|deviceinfo_kernel_source_branch="${{ inputs.kernel_branch }}"|' deviceinfo
+          grep deviceinfo_kernel_source_branch deviceinfo
+
+      - name: Clone build tools
+        run: git clone -b "$TOOLS_BRANCH" https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools.git build
+
+      - name: Build
+        run: ./build/build.sh
+
+      - name: Build flashable rootfs (ubuntu.img)
+        if: env.FLASHABLE == 'true'
+        run: |
+          ./build/prepare-fake-ota.sh out/device_instantnoodle.tar.xz ota
+          ./build/system-image-from-ota.sh ota/ubuntu_command out
+          mv out/rootfs.img out/ubuntu.img
+          zstd --ultra -22 -T0 --rm out/ubuntu.img
+
+      - name: Collect release files
+        run: |
+          mkdir -p release
+          cp out/boot.img out/recovery.img out/dtbo.img out/device_instantnoodle.tar.xz release/
+          [ -f out/ubuntu.img.zst ] && cp out/ubuntu.img.zst release/ || true
+          ls -l release
+
+      - name: Upload artifacts
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v4
+        with:
+          name: instantnoodle-${{ github.sha }}
+          path: release/
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release)
+        uses: https://code.forgejo.org/actions/forgejo-release@v2
+        with:
+          direction: upload
+          url: ${{ github.server_url }}
+          repo: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('test-{0}', github.run_number) }}
+          sha: ${{ github.sha }}
+          title: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('Test build {0}', github.run_number) }}
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          release-dir: release
+          release-notes: "Ubuntu Touch 24.04 (Halium 10) images for OnePlus 8 (instantnoodle). Flash from fastbootd: boot, dtbo, recovery, then `zstd -d ubuntu.img.zst && fastboot flash system ubuntu.img`."

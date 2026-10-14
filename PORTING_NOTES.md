@@ -63,8 +63,27 @@ Reviewed on 2026-10-14 against:
 18. Removed stray `.halium-override-dir` / `.halium-overlay-dir` marker files that sat next to
     real files and had no effect there.
 
-Kept as-is (deliberately): `halium.yaml` (grid unit 21, torch paths), udev rules, pulse `touch.pa`,
-ofono binder config with two slots, `vendor/build.prop`, `device-hacks`, `sound-script`.
+### Verified against the OnePlus 8 device tree (LineageOS sm8250-common / instantnoodle)
+
+- `halium.yaml`: backlight `/sys/class/backlight/panel0-backlight` and torch `led:torch_0` /
+  `led:switch_0` are the nodes OnePlus's `init.oem.rc` sets up. GridUnit 21 = stock
+  `ro.sf.lcd_density` 420 / 20, the usual Ubuntu Touch formula.
+- `deviceinfo` cmdline, page size, header v2, offsets, boot and recovery partition sizes
+  (100663296) all match `BoardConfigCommon.mk`.
+- udev rules: every node in the stock `ueventd.rc` is covered; the five that were missing
+  (`mhi_*_pipe_4`, `spu_hal_ssr`, `iuicc*`, `reserve1`) were added, plus `/dev/vhci` for bluebinder.
+- usb-moded: idVendor `2A70` (OnePlus), MTP `4EE1`, MTP+ADB `4EE2`, RNDIS `F00E`, RNDIS+ADB
+  `9024`, taken from the stock `init.qcom.usb.rc` / AOSP configfs defaults.
+- ofono: dual slot (`/ril_0`, `/ril_1`) with the qti binder plugin at radio interface 1.4 is what
+  the Android 10 vendor exposes; same file as the Nord N10 port.
+- pulse `touch.pa`: `module-droid-card-28` is the right droid module for Halium 9/10 vendors.
+- `recovery.fstab`: matches the stock `fstab.qcom` for the partitions recovery needs (system,
+  vendor, metadata, userdata, persist, misc, modem, dsp, bluetooth) plus boot/dtbo for flashing.
+  Differences are intentional: userdata as ext4 (Ubuntu Touch formats ext4), no `op2`/`odm`
+  (mounted by the Android container itself). The two `sdcard1` lines are harmless; the OnePlus 8
+  has no SD slot.
+
+Kept as-is: `vendor/build.prop`, `device-hacks`, `sound-script`, `check-audio-mic`.
 
 ## Things still to do, in order
 
