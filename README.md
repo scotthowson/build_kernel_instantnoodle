@@ -12,7 +12,6 @@
 > [!NOTE] 
 > OnePlus 8 (instantnoodle).
 
-> [!IMPORTANT]s
 > [!CAUTION]
 > This guide involves procedures like unlocking the bootloader, flashing firmware, and modifying system components. These actions can potentially lead to negative outcomes, such as voiding your warranty, bricking your device, or compromising its security. Proceed with full understanding of the risks and ensure you follow the instructions carefully.
 
@@ -38,21 +37,19 @@ docker exec -it Ubuntu-20.04 bash
 
 ### How to Build
 
-To build this project:
 ```bash
-git clone https://github.com/scotthowson/halium_kernel_instantnoodle
-cd halium_kernel_instantnoodle
-chmod +x build.sh
-./build.sh -b Instantnoodle
-./build/prepare-fake-ota.sh out/device_instantnoodle_usrmerge.tar.xz ota
-./build/system-image-from-ota.sh ota/ubuntu_command Images/instantnoodle-a10
-```
-To rebuild this project:
-```bash
-sudo rm -rf Instantnoodle/downloads/KERNEL_OBJ/ Instantnoodle/downloads/halium_instantnoodle_linux_kernel/ Instantnoodle/tmp/ overlay/
+git clone -b android-10-testing https://github.com/scotthowson/build_kernel_instantnoodle
+cd build_kernel_instantnoodle
+./build.sh                                                   # boot.img, recovery.img, dtbo.img, device tarball -> out/
+./build/prepare-fake-ota.sh out/device_instantnoodle.tar.xz ota
+./build/system-image-from-ota.sh ota/ubuntu_command out      # out/rootfs.img (flash as system)
 ```
 
-If built successfully, your system images will be in 'Images/instantnoodle-a10/'
+The overlay lives in `./overlay`, the kernel defconfig fixes in `./kernel/`, and the review
+notes in `PORTING_NOTES.md`. A GitHub Actions workflow (`.github/workflows/build.yml`) runs the
+same build on a self-hosted runner.
+
+To rebuild from scratch: `rm -rf build downloads out ota`.
 
 ## Delete logic partitions:
 ```console

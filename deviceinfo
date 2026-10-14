@@ -7,6 +7,8 @@ deviceinfo_manufacturer="OnePlus"
 deviceinfo_codename="instantnoodle"
 deviceinfo_arch="aarch64"
 deviceinfo_halium_version="10"
+# Valid values: focal, 24.04-1.x, 24.04-2.x ("noble" is rejected by prepare-fake-ota.sh)
+deviceinfo_ubuntu_touch_release="24.04-2.x"
 
 ##########
 # Kernel
@@ -15,14 +17,14 @@ deviceinfo_halium_version="10"
 deviceinfo_kernel_source="https://github.com/scotthowson/Ubuntu_ElementalX_OnePlus8"
 deviceinfo_kernel_source_branch="Halium-10"
 deviceinfo_kernel_defconfig="halium-instantnoodle_ubuntu_defconfig"
-deviceinfo_kernel_cmdline="androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 androidboot.usbcontroller=a600000.dwc3 androidboot.selinux=permissive swiotlb=2048 loop.max_part=7 cgroup.memory=nokmem,nosocket reboot=panic_warm selinux=0 apparmor=1 security=apparmor buildvariant=user systempart=/dev/mapper/system_a console=tty0"
+# systemd.unified_cgroup_hierarchy=0 must live here: CONFIG_CMDLINE is ignored on this
+# kernel because the bootloader provides its own cmdline (no CONFIG_CMDLINE_EXTEND).
+deviceinfo_kernel_cmdline="androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 androidboot.usbcontroller=a600000.dwc3 androidboot.selinux=permissive swiotlb=2048 loop.max_part=7 cgroup.memory=nokmem,nosocket reboot=panic_warm selinux=0 apparmor=1 security=apparmor buildvariant=user systempart=/dev/mapper/system_a systemd.unified_cgroup_hierarchy=0 console=tty0"
 deviceinfo_kernel_clang_compile="true"
 deviceinfo_kernel_llvm_compile="false"
 deviceinfo_kernel_use_lld="false"
 deviceinfo_kernel_use_dtc_ext="true"
 deviceinfo_kernel_image_name="Image"
-deviceinfo_ubuntu_touch_release="noble"
-# deviceinfo_system_partition_size="4300M"
 
 ##############
 # Boot image
@@ -40,39 +42,39 @@ deviceinfo_bootimg_os_version="10"
 deviceinfo_bootimg_os_patch_level="2020-10"
 deviceinfo_bootimg_partition_size="100663296"
 deviceinfo_bootimg_append_vbmeta="true"
+deviceinfo_bootimg_qcdt="false"
 
 ##########
 # DTB(O)
 ##########
 
-# deviceinfo_dtb="vendor/qcom/kona.dtb vendor/qcom/kona-v2.dtb vendor/qcom/kona-v2.1.dtb"
-# deviceinfo_kernel_apply_overlay="true"
-# Uncomment and adjust if prebuilt DTB or DTBO files are used
-# deviceinfo_bootimg_prebuilt_dtb="arch/arm64/boot/dts/vendor/qcom/kona.dtb"
-# deviceinfo_prebuilt_dtbo="dtbo.img"
-# deviceinfo_dtbo="vendor/qcom/instantnoodle-overlay-t0.dtbo vendor/qcom/instantnoodle-overlay-dvt.dtbo vendor/qcom/instantnoodlep-overlay-t0.dtbo vendor/qcom/instantnoodlev-overlay-t0.dtbo vendor/qcom/instantnoodle-overlay-evt1.dtbo vendor/qcom/instantnoodlep-overlay-dvt.dtbo vendor/qcom/instantnoodlep-overlay-evb.dtbo vendor/qcom/instantnoodlev-overlay-dvt.dtbo vendor/qcom/instantnoodlep-overlay-evt1.dtbo vendor/qcom/instantnoodlev-overlay-evt1.dtbo"
-deviceinfo_rootfs_image_sector_size="4096"
-
 deviceinfo_bootimg_prebuilt_dtb="oneplus-instantnoodle-instantnoodle.dtb"
 deviceinfo_prebuilt_dtbo="oneplus-instantnoodle-dtbo.img"
-deviceinfo_recovery_dtbo="oneplus-instantnoodle-dtbo.img"
-deviceinfo_bootimg_qcdt="false"
 
 ###########
 # Ramdisk
 ###########
 
 deviceinfo_ramdisk_compression="gzip"
+deviceinfo_rootfs_image_sector_size="4096"
 
 ###########
 # Recovery
 ###########
 
+# Recovery is built from the prebuilt ./ramdisk-recovery.img (known working) with
+# ./ramdisk-recovery-overlay/ applied on top.
 deviceinfo_has_recovery_partition="true"
+deviceinfo_recovery_partition_size="100663296"
+# Alternative used by current UBports ports: drop ramdisk-recovery.img and enable
+# deviceinfo_use_unified_recovery="true"
+# deviceinfo_unified_recovery_ui_density="xxhdpi"
 
 #################
 # Miscellaneous
 ################
 
-# deviceinfo_system_partition_size="3000M"
-# deviceinfo_use_overlaystore="true"
+# Ship device-specific files via the overlay store (recommended for 20.04+)
+deviceinfo_use_overlaystore="true"
+# Maximum size of the rootfs image written to system_a
+# deviceinfo_system_partition_size="3584M"

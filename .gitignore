@@ -1,20 +1,10 @@
-out/
-/overlay
+# build tools clone and build output
 /build
-/InstantNoodle
-/instantnoodle
-/InstantNoodlep
-/instantnoodlep
-/oneplus
-/oneplus8
-
-/Images/instantnoodle-a10
+/out
 /ota
-/recovery
-/Images/instantnoodle
-/Images/recovery
-/Instantnoodle
 /Images
-/pb
-/prebuilds
-ramdisk-recovery-bak.img
+/*.tar.xz
+/Instantnoodle
+/instantnoodle
+/downloads
+/tmp

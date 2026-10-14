@@ -1,0 +1,121 @@
+# Builds the OnePlus 8 (instantnoodle) Ubuntu Touch port on your self-hosted runner.
+#
+# Requirements on the runner machine:
+#   - a GitHub Actions self-hosted runner registered to this repository with the label "self-hosted"
+#   - Docker (the job runs inside an ubuntu:22.04 container, like the UBports GitLab CI does)
+#
+# Artifacts: boot.img, recovery.img, dtbo.img, device tarball and, on manual runs with
+# "flashable" enabled, a compressed ubuntu.img (rootfs) ready for `fastboot flash system`.
+name: Build Ubuntu Touch images
+
+on:
+  push:
+    branches: [android-10-testing]
+    tags: ['v*']
+    paths-ignore: ['**.md', '.vscode/**']
+  pull_request:
+    branches: [android-10-testing]
+  workflow_dispatch:
+    inputs:
+      flashable:
+        description: "Also build the rootfs (ubuntu.img) from the latest 24.04 OTA"
+        type: boolean
+        default: true
+      build_tools_branch:
+        description: "halium-generic-adaptation-build-tools branch"
+        type: string
+        default: main
+      release:
+        description: "Publish the images as a GitHub pre-release (tag test-<run number>)"
+        type: boolean
+        default: false
+
+env:
+  TOOLS_BRANCH: ${{ inputs.build_tools_branch || 'main' }}
+  DEBIAN_FRONTEND: noninteractive
+  # rootfs is built on manual runs that ask for it and on every tagged release
+  FLASHABLE: ${{ (github.event_name == 'workflow_dispatch' && inputs.flashable) || startsWith(github.ref, 'refs/tags/v') }}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Kernel, boot, recovery, device tarball
+    runs-on: [self-hosted]
+    container:
+      image: ubuntu:22.04
+      # losetup/mount inside system-image-from-ota.sh need a privileged container
+      options: --privileged
+    timeout-minutes: 240
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            bc bison build-essential ca-certificates cpio curl fakeroot flex git kmod \
+            libelf-dev libssl-dev libtinfo5 lz4 python2 python3 sudo unzip wget xz-utils \
+            pahole libbpf-dev img2simg jq zstd rsync
+          ln -sf python2 /usr/bin/python
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clone build tools
+        run: git clone -b "$TOOLS_BRANCH" https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools.git build
+
+      - name: Build
+        run: ./build/build.sh
+
+      - name: Upload boot artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: instantnoodle-boot-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            out/boot.img
+            out/recovery.img
+            out/dtbo.img
+            out/device_instantnoodle.tar.xz
+
+      - name: Build flashable rootfs (ubuntu.img)
+        if: env.FLASHABLE == 'true'
+        run: |
+          ./build/prepare-fake-ota.sh out/device_instantnoodle.tar.xz ota
+          ./build/system-image-from-ota.sh ota/ubuntu_command out
+          mv out/rootfs.img out/ubuntu.img
+          zstd --ultra -22 -T0 --rm out/ubuntu.img
+
+      - name: Upload rootfs artifact
+        if: env.FLASHABLE == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: instantnoodle-rootfs-${{ github.sha }}
+          if-no-files-found: error
+          path: out/ubuntu.img.zst
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('test-{0}', github.run_number) }}
+          name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('Test build {0}', github.run_number) }}
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          body: |
+            Ubuntu Touch 24.04 (Halium 10) images for OnePlus 8 (instantnoodle), built from ${{ github.sha }}.
+
+            Flash from fastbootd (`adb reboot fastboot`):
+            ```
+            fastboot flash boot boot.img
+            fastboot flash dtbo dtbo.img
+            fastboot flash recovery recovery.img
+            zstd -d ubuntu.img.zst && fastboot flash system ubuntu.img
+            ```
+          files: |
+            out/boot.img
+            out/recovery.img
+            out/dtbo.img
+            out/device_instantnoodle.tar.xz
+            out/ubuntu.img.zst

@@ -1,0 +1,34 @@
+instantnoodle:
+  Vendor: OnePlus
+  codename: instantnoodle
+  Names:
+    - OnePlus8
+    - OnePlus 8
+    - instantnoodle
+  PrettyName: OnePlus 8
+  DeviceType: phone
+  GridUnit: 21
+  WebkitDpr: 2
+  SupportedOrientations:
+    - Portrait
+    - Landscape
+    - InvertedLandscape
+  BacklightSysfsPath:
+    - /sys/class/backlight/panel0-backlight
+  FlashlightSysfsPath:
+    - /sys/class/leds/led:torch_0/brightness
+  FlashlightSwitchPath:
+    - /sys/class/leds/led:switch_0/brightness
+  MirAndroidPlatformServerBackpressure:
+    - false
+  MirAndroidPlatformServerPartialUpdates:
+    - true
+  MirAndroidPlatformServerEglSync:
+    - false
+  MirAndroidPlatformClientEglFlush:
+    - all
+  XwaylandShm:
+    - true
+  OfonoPlugin: binder
+  OfonoImplementsIms: true
+  FilesystemEncryption: true

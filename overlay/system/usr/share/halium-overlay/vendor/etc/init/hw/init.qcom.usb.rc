@@ -1,0 +1,16 @@
+# Misuse this overlay for some Android properties
+on early-init
+    setprop debug.stagefright.ccodec 0
+
+on init
+    setprop debug.stagefright.ccodec 0
+
+on boot
+    setprop debug.stagefright.ccodec 0
+    setprop ubuntu.unity8.interactive_blur true
+    setprop ubuntu.widi.supported 1
+
+service time_daemon vendor.time_daemon_HYBRIS_DISABLED
+    disabled
+    oneshot
+    override
