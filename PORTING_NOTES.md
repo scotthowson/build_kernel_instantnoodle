@@ -150,9 +150,9 @@ workarounds are in `ubuntu-touch-session.d/android.conf`; they are being tested 
 `vendor/qcom/kona.dtb`, `kona-v2.dtb` and `kona-v2.1.dtb` from the kernel build as the boot
 image's DTB section, and build `dtbo.img` from `instantnoodle-overlay-t0/-evt1/-dvt.dtbo`. The
 8 Pro (`instantnoodlep`) and Visible/T-Mobile (`instantnoodlev`) overlays are not included.
-Verification on device: `cat /proc/device-tree/model` shows the instantnoodle revision string,
-and display, touch, charging and the alert slider behave as before. The prebuilt files stay in
-the repo (commented in deviceinfo) until that boot is confirmed, then they get deleted.
+Verified on device: the bootloader picked `dtb_idx=2` (kona-v2.1) and `dtbo_idx=2` (DVT overlay),
+and `/proc/device-tree/model` reads "kona MTP dvt 19821 19855 14 15" as before. The prebuilt files
+are deleted from the repo.
 
 ## Things still to do, in order
 

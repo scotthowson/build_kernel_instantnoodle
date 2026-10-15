@@ -21,7 +21,7 @@ esac
 
 hex=$(echo "$bt" | tr -d ':' | tr 'a-f' 'A-F')
 prefix=${hex%????}
-last=$(printf '%d' "0x${hex#??????????}")
+last=$(printf "%d" "0x${hex#????????}")
 mac0=$(printf '%s%04X' "$prefix" $(( (last + 1) & 0xFFFF )))
 mac1=$(printf '%s%04X' "$prefix" $(( (last + 2) & 0xFFFF )))
 content=$(printf 'Intf0MacAddress=%s\nIntf1MacAddress=%s\nEND\n' "$mac0" "$mac1")
