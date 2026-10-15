@@ -65,6 +65,19 @@ jobs:
       - name: Clone build tools
         run: git clone -b "$TOOLS_BRANCH" https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools.git build
 
+      - name: Pre-fetch Google-hosted tooling (with retries)
+        # android.googlesource.com returns 503 now and then; the build tools skip the clone
+        # when the directory already exists, so fetch it here with retries first.
+        run: |
+          mkdir -p workdir/downloads
+          for i in 1 2 3 4 5 6; do
+            [ -d workdir/downloads/avb ] && break
+            git clone --depth 1 --recursive -b android13-gsi \
+              https://android.googlesource.com/platform/external/avb workdir/downloads/avb && break
+            echo "clone failed (attempt $i), retrying in 30s"; rm -rf workdir/downloads/avb; sleep 30
+          done
+          [ -d workdir/downloads/avb ]
+
       - name: Build
         run: ./build/build.sh
 
