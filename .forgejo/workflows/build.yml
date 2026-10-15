@@ -165,9 +165,9 @@ jobs:
         uses: https://code.forgejo.org/actions/forgejo-release@v2
         with:
           direction: upload
-          # Set repository/instance variable FORGEJO_INTERNAL_URL (e.g. http://forgejo:3000) when the
+          # Set repository/instance variable INTERNAL_URL (e.g. http://forgejo:3000) when the
           # public URL sits behind an authenticating proxy that rejects API calls from the runner.
-          url: ${{ vars.FORGEJO_INTERNAL_URL || github.server_url }}
+          url: ${{ vars.INTERNAL_URL || github.server_url }}
           repo: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('test-{0}', github.run_number) }}

@@ -109,4 +109,4 @@ actions, release via `forgejo-release`).
 Releases on Forgejo are created by the workflow with the repository's own `GITHUB_TOKEN`; no extra
 secret is needed. If the public URL is behind an authenticating proxy (the runner ping returned 401),
 add a variable so the release step uses the internal address: repo Settings, Actions, Variables,
-name `FORGEJO_INTERNAL_URL`, value `http://forgejo:3000`.
+name `INTERNAL_URL`, value `http://forgejo:3000`.
