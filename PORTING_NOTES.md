@@ -198,6 +198,34 @@ supplies, the finger-down event (`touch_state` node) and the UI-ready signal wit
 the CI build carrying d3d220bd6 and run the kernel agent's test script with a white area under
 the sensor; if calibration completes, enrolment and unlock work in that test setup.
 
+The exact gate, from `libgf_ud_hal.so` (`DelmarFingerprintCore::checkEnrollAuthReady`): the HAL
+loads the calibration state word and refuses enrol/auth with error 0x446 ("cali data not ready
+caliState=...") unless **bits 0 and 1 are both set** (`tst ~state, 3`). The reported
+`mCaliDataState=0x2` means bit 1 (stored data) is present and bit 0 (the illuminated step) is
+missing. After a calibration run, restart the HAL and look for `0x3` in logcat; `0x2` means the
+run did not count.
+
+Calibration sequence used for the test, HAL extension commands over the fingerprint HIDL
+(`gfcmd.py <cmd>` from the kernel agent, logcat cleared between steps):
+
+| Cmd | Name | Wait |
+|---|---|---|
+| 1550 | GET_VERSION | 2 s |
+| 1570 | FT_INIT | 3 s |
+| 1688 | SIMPLE_CALI_INIT | 3 s |
+| 1690 | SIMPLE_CALI_BASE | 6 s |
+| 1691 | SIMPLE_CALI_AUTO_CALIBRATION | 8 s, screen lit under the sensor |
+| 1692 | SIMPLE_STOP_CALI_AUTO_CALIBRATION | 3 s |
+| 1693 | SIMPLE_CALI_PERFORMANCE | 6 s |
+| 1689 | SIMPLE_CALI_EXIT | 3 s |
+| 1571 | FT_EXIT | 3 s |
+
+Then `ls -l /mnt/vendor/persist/data` in the container (new/updated calibration files) and
+`kill $(pidof android.hardware.biometrics.fingerprint@2.1-service)`; grep logcat for
+`mCaliDataState`. The HAL also reads `gf_sensors.conf` (`sensor_center_x[n]`,
+`sensor_center_y[n]`, `sensorX`, `sensor_ito_rotation`, `screenWidth`): cross-check the sensor
+centre used for `halium.yaml` against that file.
+
 Making it a real feature is userspace work that belongs upstream with UBports: a small service
 doing what the test script does, tied to biometryd sessions, and Lomiri drawing the illumination
 spot at the sensor position. Sensor geometry for `halium.yaml` (`udfpLocationX/Y`,
