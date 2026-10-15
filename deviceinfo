@@ -49,8 +49,15 @@ deviceinfo_bootimg_qcdt="false"
 # DTB(O)
 ##########
 
-deviceinfo_bootimg_prebuilt_dtb="oneplus-instantnoodle-instantnoodle.dtb"
-deviceinfo_prebuilt_dtbo="oneplus-instantnoodle-dtbo.img"
+# Device trees are built from the kernel source (paths relative to arch/arm64/boot/dts/ in the
+# kernel build directory). The three kona base trees are concatenated into the boot image's DTB
+# section; the bootloader picks the matching one by msm-id/board-id. The dtbo image carries the
+# OnePlus 8 (instantnoodle) overlays for the T0, EVT1 and DVT hardware revisions.
+deviceinfo_dtb="vendor/qcom/kona.dtb vendor/qcom/kona-v2.dtb vendor/qcom/kona-v2.1.dtb"
+deviceinfo_dtbo="vendor/qcom/instantnoodle-overlay-t0.dtbo vendor/qcom/instantnoodle-overlay-evt1.dtbo vendor/qcom/instantnoodle-overlay-dvt.dtbo"
+# Previous prebuilt files, kept until a source-built boot is confirmed on the device:
+# deviceinfo_bootimg_prebuilt_dtb="oneplus-instantnoodle-instantnoodle.dtb"
+# deviceinfo_prebuilt_dtbo="oneplus-instantnoodle-dtbo.img"
 
 ###########
 # Ramdisk

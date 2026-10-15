@@ -143,6 +143,17 @@ Known issue: random thin black horizontal dashes in GPU-rendered content, presen
 kernel too; GPU bring-up is clean, investigation is on the Qt/Mir/hybris side. No Qt environment
 workarounds are in `ubuntu-touch-session.d/android.conf`; they are being tested live first.
 
+## Device trees from source (kernel d5455f4eb)
+
+`deviceinfo` no longer points at the prebuilt `oneplus-instantnoodle-instantnoodle.dtb` and
+`oneplus-instantnoodle-dtbo.img` (both of mixed origin). The build tools now take
+`vendor/qcom/kona.dtb`, `kona-v2.dtb` and `kona-v2.1.dtb` from the kernel build as the boot
+image's DTB section, and build `dtbo.img` from `instantnoodle-overlay-t0/-evt1/-dvt.dtbo`. The
+8 Pro (`instantnoodlep`) and Visible/T-Mobile (`instantnoodlev`) overlays are not included.
+Verification on device: `cat /proc/device-tree/model` shows the instantnoodle revision string,
+and display, touch, charging and the alert slider behave as before. The prebuilt files stay in
+the repo (commented in deviceinfo) until that boot is confirmed, then they get deleted.
+
 ## Things still to do, in order
 
 0. ~~WireGuard fetched from the network at build time.~~ Done: wireguard-linux-compat 1.0.20220627 is
