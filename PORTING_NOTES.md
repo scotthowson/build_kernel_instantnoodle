@@ -136,8 +136,13 @@ it, keep `=1` in the cmdline like stock), I/O scheduler cfq like stock.
 Kernel e6490e833 also dropped debug options, silenced the dtc overlay warnings (the flashed
 DTB/DTBO are prebuilt), removed the DSI backlight log spam and made schedutil the default.
 
-With encryption confirmed working on policy v1, `overlay/system/etc/fscrypt.conf` is now on
-`"policy_version": "2"` (the kernel has fscrypt v2). To be verified on the next fresh install.
+`overlay/system/etc/fscrypt.conf` is on `"policy_version": "2"` (the kernel has fscrypt v2).
+The first two installs came up unencrypted with no encryption step in the wizard: `fscrypt status`
+showed "encryption not enabled on filesystem /userdata", i.e. the ext4 `encrypt` feature flag was
+missing because userdata had been formatted with `fastboot -w` / plain `mkfs.ext4`. Format from
+recovery with `mke2fs -t ext4 -O encrypt,quota` (see README) and the wizard offers encryption.
+The `pam_fscrypt ... setting groups: operation not permitted` journal line is the lock screen's
+PAM stack on an unencrypted home and is harmless.
 
 Known issue: random thin black horizontal dashes in GPU-rendered content, present on the previous
 kernel too; GPU bring-up is clean, investigation is on the Qt/Mir/hybris side. No Qt environment
