@@ -1,0 +1,21 @@
+[Unit]
+Description=Mount Android binderfs on /dev/binderfs
+Documentation=https://www.kernel.org/doc/html/latest/admin-guide/binderfs.html
+# lxc-android-config bind-mounts /dev/binderfs into the Android container and
+# only mounts binderfs itself when the kernel has no static /dev/binder. This
+# kernel keeps the static binder devices (the Android 10 container needs them)
+# and provides binderfs in addition, so mount it here for the container bind
+# mount and for Waydroid.
+DefaultDependencies=no
+Before=mount-android-partitions.service lxc-android-config.service sysinit.target
+ConditionPathExists=!/dev/binderfs/binder-control
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecCondition=/bin/sh -c 'grep -qw binder /proc/filesystems'
+ExecStart=/bin/mkdir -p /dev/binderfs
+ExecStart=/bin/mount -t binder binder /dev/binderfs -o stats=global
+
+[Install]
+WantedBy=sysinit.target

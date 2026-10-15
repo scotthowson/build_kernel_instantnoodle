@@ -9,21 +9,26 @@ Reviewed on 2026-10-14 against:
 
 ## What was wrong, by severity
 
-### Kernel (patch in `kernel/0001-halium-instantnoodle-defconfig-fixes.patch`)
+### Kernel (all of this is now committed on `Halium-10`; see `kernel/README.md`)
 
-1. **Firmware loading was compiled out.** The defconfig has `CONFIG_EXPERT=y` and `# CONFIG_FW_LOADER is not set`.
-   With EXPERT on, Kconfig honours that line, so `request_firmware()` is a stub. QCA6390 WLAN firmware
-   (cnss2: amss.bin, m3.bin, bdwlan), Bluetooth firmware and touch firmware updates cannot load.
-   This alone explains most "drivers are wonky". Fixed: `CONFIG_FW_LOADER=y`.
+1. ~~Firmware loading was compiled out.~~ **Correction (2026-10-15):** expanding the old defconfig with
+   kconfig gives `CONFIG_FW_LOADER=y` in both the old and the new version. `FW_LOADER` is selected by
+   many drivers, so the `# CONFIG_FW_LOADER is not set` line was overridden and firmware loading always
+   worked. The effective changes of that patch were `-perf`, `AUTOFS4_FS` and the AppArmor boot
+   default. The defconfig has since been regenerated in `savedefconfig` form, which removes such
+   misleading lines.
 2. **The WLAN driver is not in the kernel tree.** `CONFIG_QCA_CLD_WLAN=y` is a dead option: there is no
    `qcacld-3.0` directory anywhere in the tree. WiFi therefore depends on the stock prebuilt
    `/vendor/lib/modules/qca_cld3_wlan.ko`, which only loads if the kernel vermagic matches
    (`4.19.81-perf`). The kernel used `CONFIG_LOCALVERSION="-howsondev"`. Both reference ports keep
-   `-perf` for this reason. Fixed in the patch; verify the module's vermagic on the device with
-   `strings /vendor/lib/modules/qca_cld3_wlan.ko | grep vermagic` and compare with `uname -r`.
+   `-perf` for this reason. **Superseded (2026-10-15):** the driver (qcacld-3.0, qca-wifi-host-cmn,
+   fw-api from LineageOS 18.1's OnePlus 8 kernel) is now built into the kernel
+   (`CONFIG_QCA_CLD_WLAN=y`), so the vendor module and its vermagic/CRC match no longer matter.
 3. **No fscrypt v2 support** (no `fs/crypto/keyring.c`, no `FSCRYPT_POLICY_V2`), but the overlay's
    `fscrypt.conf` asked for policy v2. First-boot encryption cannot succeed that way. Overlay now uses
-   v1; the proper fix is to backport fscrypt v2 like the Nord N10 kernel did.
+   v1. **Update (2026-10-15):** the Nord N10 fscrypt v2 commit is cherry-picked onto `Halium-10`;
+   switch `overlay/system/etc/fscrypt.conf` back to `"policy_version": "2"` once a build with it has
+   encrypted a fresh install successfully.
 4. `CONFIG_CMDLINE="systemd.unified_cgroup_hierarchy=0"` is ignored (bootloader cmdline wins), so the
    booting build has always run on cgroup v2, which is what Ubuntu Touch 24.04 expects. The parameter
    was briefly added to `deviceinfo_kernel_cmdline` and removed again after a non-booting test; leave
@@ -94,21 +99,23 @@ rootfs requires binderfs and the kernel has none (`drivers/android/binderfs.c` i
 `CONFIG_ANDROID_BINDERFS=n` line is a no-op). The overlay store mode also dropped most device files
 ("doesn't exist, cannot overlay") and has been reverted. Kernel work is in `kernel/HANDOFF.md`.
 
+Resolution (2026-10-15): binderfs is backported on `Halium-10` (`CONFIG_ANDROID_BINDERFS=y`, static
+binder devices kept for the Android 10 container), and the overlay gained
+`usr/lib/systemd/system/android-binderfs.service`, which mounts binderfs on `/dev/binderfs` early so
+the container's bind mount has a source whether or not the rootfs marks it `optional`.
+
 ## Things still to do, in order
 
-0. Kernel: `net/Kconfig` sources `net/wireguard/Kconfig`, and `scripts/fetch-latest-wireguard.sh`
-   downloads wireguard-linux-compat from git.zx2c4.com on every fresh checkout. CI works around it
-   by seeding `net/wireguard` from a cached copy. The clean fix is to commit the
-   wireguard-linux-compat `src/` directory as `net/wireguard` in the kernel repo and make the fetch
-   script a no-op. Keep `CONFIG_WIREGUARD=y`: Ubuntu Touch's VPN support uses it.
+0. ~~WireGuard fetched from the network at build time.~~ Done: wireguard-linux-compat 1.0.20220627 is
+   vendored as `net/wireguard` on `Halium-10` and the fetch script is a no-op; the CI seeding step is
+   gone. `CONFIG_WIREGUARD=y` stays (Ubuntu Touch VPN).
 
-1. Apply the kernel patch to `Ubuntu_ElementalX_OnePlus8` (`Halium-10`) and rebuild. Check `dmesg` for
-   `qca_cld3_wlan` load messages. "disagrees about version of symbol" means a CRC mismatch: then the
-   fix is to import OnePlus's `qcacld-3.0`, `qca-wifi-host-cmn` and `fw-api` into
-   `drivers/staging/` and build it in-tree as a module (the build tools install in-tree modules
-   into the rootfs automatically).
-2. Backport fscrypt v2 (Nord N10 kernel commit "treewide: Check out fscrypt v2 support from Android
-   Common Kernel") and switch `overlay/system/etc/fscrypt.conf` back to `"policy_version": "2"`.
+1. Flash a build with the current `Halium-10` kernel (binderfs, in-tree WLAN, fscrypt v2) and check:
+   `lxc-info -n android` RUNNING, UI up, `ls /dev/binderfs`, `dmesg | grep -i -E "cnss|wlan"` for the
+   in-tree driver, WiFi scan/connect. If WLAN firmware refuses the newer host driver (WMI version
+   messages in dmesg), the fallback is a qcacld-3.0 snapshot from an Android 10 CAF tag.
+2. After that build encrypts a fresh install, switch `overlay/system/etc/fscrypt.conf` to
+   `"policy_version": "2"`.
 3. Add `DisplayCutouts*` to `halium.yaml` for the punch-hole camera once the panel geometry is
    measured, as the Nord N100 port does.
 4. Note that all `etc/init/*.conf|override` and `usr/share/upstart/sessions/*` files are inert on
