@@ -171,9 +171,12 @@ are deleted from the repo.
    messages in dmesg), the fallback is a qcacld-3.0 snapshot from an Android 10 CAF tag.
 2. After that build encrypts a fresh install, switch `overlay/system/etc/fscrypt.conf` to
    `"policy_version": "2"`.
-3. Display cutouts are now in `halium.yaml`, taken from the OnePlus 8 framework overlay
-   (`config_mainBuiltInDisplayCutout`: 68 px hole at x 65-133, y 34-103; 104 px status bar). If the
-   indicators still collide with the hole, adjust the x/width of the three rectangles.
+3. Punch hole: `halium.yaml` sets `CollapsedPanelHeight: 104` (hole at x 65-133, y 34-103 from the
+   OnePlus 8 framework overlay) so apps start below it. `DisplayCutouts*` were tried and removed:
+   Lomiri's PanelItemRow pushes an indicator that overlaps a cutout to the far side of it, and the
+   65 px left of the hole cannot fit an indicator, so the notifications indicator went off-screen.
+   Lomiri also reads `udfpSensorRadius` (and related keys) for under-display fingerprint; relevant
+   once the goodix UDFPS work in the kernel is wired to userspace.
 4. Note that all `etc/init/*.conf|override` and `usr/share/upstart/sessions/*` files are inert on
    24.04 (no upstart). They are kept for parity with the reference ports; MTP and tethering on 24.04
    go through usb-moded, which this overlay configures.

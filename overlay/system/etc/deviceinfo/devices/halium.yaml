@@ -32,13 +32,9 @@ instantnoodle:
   OfonoPlugin: binder
   OfonoImplementsIms: true
   FilesystemEncryption: true
-  # Punch-hole camera, top left. From the OnePlus 8 framework overlay
-  # (config_mainBuiltInDisplayCutout): 68 px circle, x 65-133, y 34-103 on the 1080x2376 panel;
-  # Android clears it with a 104 px status bar. Rectangles are "x y width height" in pixels.
+  # Punch-hole camera, top left: 68 px circle at x 65-133, y 34-103 on the 1080x2376 panel (from the
+  # OnePlus 8 framework overlay). A 104 px panel keeps app content below the hole. Horizontal
+  # DisplayCutouts are deliberately not set: Lomiri pushes any indicator overlapping a cutout to the
+  # far side of it, and the 65 px strip left of the hole cannot hold one, so the notifications
+  # indicator (leftmost) ended up off-screen. Without cutouts its icon sits left of the hole.
   CollapsedPanelHeight: 104
-  DisplayCutoutsCollapsed:
-    - 65 0 68 104
-  DisplayCutoutsCollapsedLight:
-    - 65 0 68 104
-  DisplayCutoutsExpanded:
-    - 65 0 68 112
