@@ -1,0 +1,18 @@
+[Unit]
+Description=Enable the built-in QCA WLAN driver (write ON to /dev/wlan)
+# qcacld-3.0 is built into the kernel (CONFIG_QCA_CLD_WLAN=y). Unlike the vendor module, the
+# built-in driver stays dormant until userspace writes "ON" to /dev/wlan, which the Android
+# WiFi HAL would do on stock. Firmware comes from /vendor through the container's ueventd, so
+# this has to run after the Android container is up. Retries until wlan0 exists.
+After=lxc-android-config.service
+Wants=lxc-android-config.service
+Before=NetworkManager.service urfkill.service
+ConditionPathExists=/dev/wlan
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'for i in $(seq 1 45); do [ -d /sys/class/net/wlan0 ] && { echo "wlan0 is up"; exit 0; }; echo ON > /dev/wlan 2>/dev/null; sleep 2; done; echo "wlan0 did not appear"; exit 1'
+
+[Install]
+WantedBy=multi-user.target
