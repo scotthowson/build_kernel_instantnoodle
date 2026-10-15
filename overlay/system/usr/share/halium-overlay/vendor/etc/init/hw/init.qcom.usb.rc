@@ -14,3 +14,11 @@ service time_daemon vendor.time_daemon_HYBRIS_DISABLED
     disabled
     oneshot
     override
+
+# The goodix fingerprint HAL writes its sensor cache to /data/media/0/gf_secure_obj_1.so_0 and
+# fails silently when the directory is missing. Android's vold normally creates it; on
+# Ubuntu Touch nothing does, so create it here (this file is bind-mounted over the stock one by
+# mount-halium-overlay, which cannot add new rc files).
+on post-fs-data
+    mkdir /data/media 0775 system system
+    mkdir /data/media/0 0775 system system

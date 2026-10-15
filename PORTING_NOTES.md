@@ -129,24 +129,34 @@ pieces were missing:
 ## Status after the first full install on kernel e6490e833 (2026-10-15)
 
 Confirmed on device: boot, UI, Android container over binderfs, install wizard, WiFi (in-tree
-qcacld-3.0), Bluetooth (bluebinder), encryption of a fresh install. cpufreq governor is schedutil
-on all clusters, `lpm_levels.sleep_disabled` reads N after boot (Android's post-boot script clears
-it, keep `=1` in the cmdline like stock), I/O scheduler cfq like stock.
+qcacld-3.0), Bluetooth (bluebinder). cpufreq governor is schedutil on all clusters,
+`lpm_levels.sleep_disabled` reads N after boot (Android's post-boot script clears it, keep `=1` in
+the cmdline like stock), I/O scheduler cfq like stock, persist is mounted at `/mnt/vendor/persist`
+inside the container.
 
-Kernel e6490e833 also dropped debug options, silenced the dtc overlay warnings (the flashed
-DTB/DTBO are prebuilt), removed the DSI backlight log spam and made schedutil the default.
+Kernel side since then (d3d220bd6): debug options dropped, DSI backlight log spam removed,
+schedutil default, dtc overlay warnings silenced, device trees built with the in-tree dtc, overlay
+list reduced to instantnoodle, and the fingerprint enabler (see below), inactive unless written.
 
 `overlay/system/etc/fscrypt.conf` is on `"policy_version": "2"` (the kernel has fscrypt v2).
 The first two installs came up unencrypted with no encryption step in the wizard: `fscrypt status`
 showed "encryption not enabled on filesystem /userdata", i.e. the ext4 `encrypt` feature flag was
 missing because userdata had been formatted with `fastboot -w` / plain `mkfs.ext4`. Format from
 recovery with `mke2fs -t ext4 -O encrypt,quota` (see README) and the wizard offers encryption.
-The `pam_fscrypt ... setting groups: operation not permitted` journal line is the lock screen's
-PAM stack on an unencrypted home and is harmless.
+Policy v2 is to be confirmed on the first install made that way. The
+`pam_fscrypt ... setting groups: operation not permitted` journal line is the lock screen's PAM
+stack on an unencrypted home and is harmless.
 
-Known issue: random thin black horizontal dashes in GPU-rendered content, present on the previous
-kernel too; GPU bring-up is clean, investigation is on the Qt/Mir/hybris side. No Qt environment
-workarounds are in `ubuntu-touch-session.d/android.conf`; they are being tested live first.
+### Graphics artifacts
+
+Random thin black horizontal dashes in GPU-rendered content, present on the previous kernel too.
+They are GPU buffer tiles: unaffected by GPU clock or Qt batching, so not a kernel or Qt issue.
+Being tested live: `vendor.gralloc.disable_ubwc=1` (UBWC off). If it helps, flip that line in
+`overlay/system/usr/share/halium-overlay/vendor/build.prop` from `=0` to `=1`; it is `=0` until
+then. The SurfaceFlinger-only `debug.sf.hw`, `debug.egl.hw` and `debug.sf.latch_unsignaled` lines
+were removed from that file (nothing reads them on Ubuntu Touch). Do not add `QSG_*` or
+`QT_ENABLE_GLYPH_CACHE_WORKAROUND` lines to `ubuntu-touch-session.d/android.conf`; those
+experiments are over and did not help.
 
 ## Device trees from source (kernel d5455f4eb)
 
@@ -156,34 +166,74 @@ workarounds are in `ubuntu-touch-session.d/android.conf`; they are being tested 
 image's DTB section, and build `dtbo.img` from `instantnoodle-overlay-t0/-evt1/-dvt.dtbo`. The
 8 Pro (`instantnoodlep`) and Visible/T-Mobile (`instantnoodlev`) overlays are not included.
 Verified on device: the bootloader picked `dtb_idx=2` (kona-v2.1) and `dtbo_idx=2` (DVT overlay),
-and `/proc/device-tree/model` reads "kona MTP dvt 19821 19855 14 15" as before. The prebuilt files
-are deleted from the repo.
+`/proc/device-tree/model` reads "kona MTP dvt 19821 19855 14 15" (the retail revision) and the
+panel is `qcom,mdss_dsi_samsung_ana6705_dsc_cmd`. The prebuilt files are deleted from the repo.
+
+## Under-display fingerprint (goodix) - not working in this release
+
+What works, verified by the kernel agent: biometryd to HAL, HAL to the trusted application, the
+DSP algorithm service, the kernel driver and its netlink channel, the stored half of the
+calibration (`mCaliDataState=0x2`) and the sensor cache directory.
+
+Two prerequisites were missing and are now in place; without them no display work could ever
+have produced a capture:
+
+- **`/data/media/0` in the container.** The HAL writes its sensor cache to
+  `/data/media/0/gf_secure_obj_1.so_0` and fails silently if the directory is absent (Android's
+  vold creates it, nothing on Ubuntu Touch does). The vendor init override
+  `overlay/system/usr/share/halium-overlay/vendor/etc/init/hw/init.qcom.usb.rc` now creates
+  `/data/media` and `/data/media/0` (system:system, 0775) on `post-fs-data`. It lives in that file
+  because `mount-halium-overlay` can only bind-mount over files that already exist in `/vendor`;
+  a new rc file in `vendor/etc/init/` would never be seen.
+- **Calibration files on persist keep their stock names.** The files in
+  `/mnt/vendor/persist/data` (`gf_persist*.so`, `gf_algo_init*.so`, `gf_preprocess*.so`,
+  `autoCalibrationParams.so_0`) must not be renamed. On the test unit they had been renamed with
+  a `.off` suffix at some point and were restored by hand; a backup tarball of the directory is on
+  the user's PC. Check with `ls /android/mnt/vendor/persist/data` before blaming anything else.
+
+What is blocked: the last calibration step needs the sensor to see a lit screen. Kernel
+d3d220bd6 adds the enabler that gives userspace the two signals the Android framework normally
+supplies, the finger-down event (`touch_state` node) and the UI-ready signal with HBM
+(`force_screenfp` fallback). Both are inactive unless written. The next concrete step is to flash
+the CI build carrying d3d220bd6 and run the kernel agent's test script with a white area under
+the sensor; if calibration completes, enrolment and unlock work in that test setup.
+
+Making it a real feature is userspace work that belongs upstream with UBports: a small service
+doing what the test script does, tied to biometryd sessions, and Lomiri drawing the illumination
+spot at the sensor position. Sensor geometry for `halium.yaml` (`udfpLocationX/Y`,
+`udfpSensorRadius`): centre 546 x 1909, radius 118, in the 1080 x 2400 frame. A working capture on
+this phone is the evidence that gets those accepted. Until then fingerprint is "not working" for
+release notes.
 
 ## Things still to do, in order
 
-0. ~~WireGuard fetched from the network at build time.~~ Done: wireguard-linux-compat 1.0.20220627 is
-   vendored as `net/wireguard` on `Halium-10` and the fetch script is a no-op; the CI seeding step is
-   gone. `CONFIG_WIREGUARD=y` stays (Ubuntu Touch VPN).
-
-1. Flash a build with the current `Halium-10` kernel (binderfs, in-tree WLAN, fscrypt v2) and check:
-   `lxc-info -n android` RUNNING, UI up, `ls /dev/binderfs`, `dmesg | grep -i -E "cnss|wlan"` for the
-   in-tree driver, WiFi scan/connect. If WLAN firmware refuses the newer host driver (WMI version
-   messages in dmesg), the fallback is a qcacld-3.0 snapshot from an Android 10 CAF tag.
-2. After that build encrypts a fresh install, switch `overlay/system/etc/fscrypt.conf` to
-   `"policy_version": "2"`.
-3. Punch hole: `halium.yaml` sets `CollapsedPanelHeight: 104` and `DisplayCutouts*` of 76 px at
+1. Confirm encryption (and fscrypt policy v2) on a fresh install whose userdata was formatted
+   with `mke2fs -t ext4 -O encrypt,quota`; `sudo fscrypt status /home/phablet` after the wizard.
+2. Confirm the WLAN MAC: `cat /sys/class/net/wlan0/address` should read `5c:17:cf:17:17:86`
+   (derived from `vendor.oem.bt.addr` by `instantnoodle-wlan-mac`, written to
+   `persist/wlan_mac.bin`). The MAC must survive a reboot.
+3. Graphics artifacts: result of the `vendor.gralloc.disable_ubwc=1` test (above).
+4. Fingerprint: flash d3d220bd6, run the calibration test (above).
+5. Punch hole: `halium.yaml` sets `CollapsedPanelHeight: 104` and `DisplayCutouts*` of 76 px at
    x 61-137 (Android's overlay says 68 px at x 65-133; the ring drawn around the hole was slightly
    small with that, so it was widened). Trade-off, by Lomiri's PanelItemRow design: an indicator
    overlapping a cutout is pushed to the far side of it, and the strip left of the hole cannot fit
    a whole indicator, so the leftmost one (notifications) can sit partly off-screen when the row is
    full. Removing the `DisplayCutouts*` lines (keeping the panel height) brings it back if preferred.
-   Lomiri also reads `udfpSensorRadius` (and related keys) for under-display fingerprint; relevant
-   once the goodix UDFPS work in the kernel is wired to userspace.
-4. Note that all `etc/init/*.conf|override` and `usr/share/upstart/sessions/*` files are inert on
-   24.04 (no upstart). They are kept for parity with the reference ports; MTP and tethering on 24.04
-   go through usb-moded, which this overlay configures.
-5. Consider `deviceinfo_system_partition_size` once you know how much of `super` is free after
+6. Bluetooth audio: pulseaudio cannot load `android.hardware.bluetooth.audio@2.0.so`; revisit
+   after pairing works.
+7. Cosmetic: `70-oneplus8.rules` still uses `GROUP="bluetooth"` on a few nodes; the group exists
+   on the host (bluez) but `wifi` did not and was already changed to root. The bluebinder
+   `StartLimit*` keys are in `[Unit]` in the drop-in, as they should be.
+8. All `etc/init/*.conf|override` and `usr/share/upstart/sessions/*` files are inert on 24.04
+   (no upstart). They are kept for parity with the reference ports; MTP and tethering on 24.04 go
+   through usb-moded, which this overlay configures.
+9. Consider `deviceinfo_system_partition_size` once you know how much of `super` is free after
    deleting the product/system_ext partitions.
+
+Done and verified, kept here so nobody re-opens them: WireGuard vendored on `Halium-10`
+(`CONFIG_WIREGUARD=y` stays, Ubuntu Touch VPN); first boot on the binderfs / in-tree WLAN /
+fscrypt v2 kernel confirmed; WiFi and Bluetooth confirmed; device trees from source confirmed.
 
 ## Building
 
@@ -197,8 +247,8 @@ Locally:
 
 CI: `.github/workflows/build.yml` (GitHub) and `.forgejo/workflows/build.yml` (Forgejo) run the same
 steps on a self-hosted runner inside an `ubuntu:22.04` container, the same package set as the UBports
-GitLab CI. Every run builds boot/recovery/dtbo, the device tarball and `ubuntu.img.zst`, uploads them
-as an artifact and publishes a pre-release `test-<run number>`. Pushing a tag `v*` publishes a full
-release. A manual run ("Run workflow") can untick *flashable* or *release*, and can set
-*kernel_branch* to build e.g. `Halium-10-Test`. The runner only needs the runner agent and Docker;
-see `RUNNER.md`.
+GitLab CI. Every run builds boot/recovery/dtbo, the device tarball and `ubuntu.img.zst`, publishes a
+pre-release `test-<run number>` and, best effort, uploads the small files as an artifact. Pushing a
+tag `v*` publishes a full release. A manual run ("Run workflow") can untick *flashable* or
+*release*, and can set *kernel_branch* to build e.g. `Halium-10-Test`. The runner only needs the
+runner agent and Docker; see `RUNNER.md`.

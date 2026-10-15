@@ -42,6 +42,12 @@ kernel or the overlay next. Everything here was verified on the device unless ma
   display cutouts for the punch hole; `udfpLocationX/Y`, `udfpSensorRadius` are the keys Lomiri
   reads once under-display fingerprint is wired up)
 - `etc/fscrypt.conf` policy v2
+- `usr/share/halium-overlay/vendor/etc/init/hw/init.qcom.usb.rc` (bind-mounted over the stock
+  file; carries the Android properties the port sets, disables `time_daemon`, and creates
+  `/data/media/0` for the fingerprint HAL on `post-fs-data`). New files cannot be added under
+  `usr/share/halium-overlay`: `mount-halium-overlay` only bind-mounts over paths that already
+  exist in `/android/system` or `/android/vendor`, so additions go into an existing file.
+- `usr/share/halium-overlay/vendor/build.prop` (full replacement of the stock vendor build.prop)
 
 ## 4. Installing for a test
 
@@ -122,7 +128,14 @@ hard power-off.
 
 ## 8. Open items
 
-- Bluetooth audio: pulseaudio cannot load `android.hardware.bluetooth.audio@2.0.so`; revisit after pairing works.
-- Random thin black dashes in GPU-rendered content (present before the kernel rework; Qt/Mir/hybris side).
-- Under-display fingerprint: kernel sysfs hooks exist (goodix `send_net_event`, `notify_touchdown`);
-  the userspace helper and the `udfp*` deviceinfo keys are not done.
+See `PORTING_NOTES.md`, "Things still to do", for the live list. In short:
+
+- Encryption and fscrypt policy v2 to be confirmed on an install formatted with `-O encrypt,quota`.
+- WLAN MAC persistence (`5c:17:cf:17:17:86` expected on `wlan0`).
+- Thin black dashes in GPU-rendered content (GPU buffer tiles; `vendor.gralloc.disable_ubwc=1`
+  under test). No Qt environment workarounds are to be added.
+- Under-display fingerprint: not working. The kernel enabler and the two HAL prerequisites
+  (`/data/media/0` in the container, stock file names on persist) are in place; the illumination
+  service and the Lomiri sensor spot are userspace work still to do.
+- Bluetooth audio HAL for pulseaudio.
+- Punch-hole cutout width and the notifications indicator position in `halium.yaml`.
