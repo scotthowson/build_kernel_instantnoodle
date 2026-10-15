@@ -24,9 +24,10 @@ Reviewed on 2026-10-14 against:
 3. **No fscrypt v2 support** (no `fs/crypto/keyring.c`, no `FSCRYPT_POLICY_V2`), but the overlay's
    `fscrypt.conf` asked for policy v2. First-boot encryption cannot succeed that way. Overlay now uses
    v1; the proper fix is to backport fscrypt v2 like the Nord N10 kernel did.
-4. `CONFIG_CMDLINE="systemd.unified_cgroup_hierarchy=0"` is ignored (bootloader cmdline wins). Moved to
-   `deviceinfo_kernel_cmdline`. Without it, 24.04's systemd uses cgroup v2 only and the Android 10
-   container's cgroup v1 controllers are not available.
+4. `CONFIG_CMDLINE="systemd.unified_cgroup_hierarchy=0"` is ignored (bootloader cmdline wins), so the
+   booting build has always run on cgroup v2, which is what Ubuntu Touch 24.04 expects. The parameter
+   was briefly added to `deviceinfo_kernel_cmdline` and removed again after a non-booting test; leave
+   it out.
 5. `CONFIG_SECURITY_APPARMOR_BOOTPARAM_VALUE=0` → `1`; `CONFIG_AUTOFS4_FS=y` for systemd automounts.
 
 ### deviceinfo / build tooling (fixed here)
@@ -41,8 +42,8 @@ Reviewed on 2026-10-14 against:
    `ramdisk-recovery.img` plus `ramdisk-recovery-overlay/` is known to work on the device, so it stays.
    (The UBports unified recovery is noted in `deviceinfo` as the alternative current ports use; the
    `prop.default` in the overlay is a OnePlus 8 Pro LineageOS prop dump and could be trimmed later.)
-9. `deviceinfo_use_overlaystore="true"` (recommended for 20.04+ and what the `.halium-override-dir`
-   markers in the old overlay were trying to use).
+9. `deviceinfo_use_overlaystore` stays off. It was enabled briefly; the build that boots uses the
+   normal tarball layout, so the overlay store is a separate experiment for later.
 10. `.gitignore` listed tracked files; cleaned up.
 
 ### Overlay (now in `./overlay`, no longer cloned from a second repository)
