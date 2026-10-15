@@ -15,7 +15,7 @@ Type=oneshot
 RemainAfterExit=yes
 ExecCondition=/bin/sh -c 'grep -qw binder /proc/filesystems'
 ExecStart=/bin/mkdir -p /dev/binderfs
-ExecStart=/bin/mount -t binder binder /dev/binderfs -o stats=global
+ExecStart=/bin/mount -t binder binder /dev/binderfs
 
 [Install]
 WantedBy=sysinit.target
