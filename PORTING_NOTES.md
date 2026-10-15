@@ -126,6 +126,23 @@ pieces were missing:
   OnePlus address. `bluebinder_post.sh` logs "Failed to get bluetooth address" but the HAL has
   already set it; cosmetic.
 
+## Status after the first full install on kernel e6490e833 (2026-10-15)
+
+Confirmed on device: boot, UI, Android container over binderfs, install wizard, WiFi (in-tree
+qcacld-3.0), Bluetooth (bluebinder), encryption of a fresh install. cpufreq governor is schedutil
+on all clusters, `lpm_levels.sleep_disabled` reads N after boot (Android's post-boot script clears
+it, keep `=1` in the cmdline like stock), I/O scheduler cfq like stock.
+
+Kernel e6490e833 also dropped debug options, silenced the dtc overlay warnings (the flashed
+DTB/DTBO are prebuilt), removed the DSI backlight log spam and made schedutil the default.
+
+With encryption confirmed working on policy v1, `overlay/system/etc/fscrypt.conf` is now on
+`"policy_version": "2"` (the kernel has fscrypt v2). To be verified on the next fresh install.
+
+Known issue: random thin black horizontal dashes in GPU-rendered content, present on the previous
+kernel too; GPU bring-up is clean, investigation is on the Qt/Mir/hybris side. No Qt environment
+workarounds are in `ubuntu-touch-session.d/android.conf`; they are being tested live first.
+
 ## Things still to do, in order
 
 0. ~~WireGuard fetched from the network at build time.~~ Done: wireguard-linux-compat 1.0.20220627 is
