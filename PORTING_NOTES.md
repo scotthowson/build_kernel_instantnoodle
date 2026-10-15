@@ -87,6 +87,12 @@ Kept as-is: `vendor/build.prop`, `device-hacks`, `sound-script`, `check-audio-mi
 
 ## Things still to do, in order
 
+0. Kernel: `net/Kconfig` sources `net/wireguard/Kconfig`, and `scripts/fetch-latest-wireguard.sh`
+   downloads wireguard-linux-compat from git.zx2c4.com on every fresh checkout. CI works around it
+   by seeding `net/wireguard` from a cached copy, but the clean fix is to commit the
+   wireguard-linux-compat `src/` directory as `net/wireguard` in the kernel repo and make the fetch
+   script a no-op (or drop `CONFIG_WIREGUARD=y`; Ubuntu Touch does not use it).
+
 1. Apply the kernel patch to `Ubuntu_ElementalX_OnePlus8` (`Halium-10`) and rebuild. Check `dmesg` for
    `qca_cld3_wlan` load messages. "disagrees about version of symbol" means a CRC mismatch: then the
    fix is to import OnePlus's `qcacld-3.0`, `qca-wifi-host-cmn` and `fw-api` into

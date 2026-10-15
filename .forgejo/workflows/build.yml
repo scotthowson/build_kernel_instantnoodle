@@ -74,7 +74,7 @@ jobs:
           mkdir -p workdir
           if [ -d /cache ] && [ -w /cache ]; then
             mkdir -p /cache/downloads
-            rm -rf /cache/downloads/Ubuntu_ElementalX_OnePlus8 /cache/downloads/KERNEL_OBJ
+            rm -rf /cache/downloads/KERNEL_OBJ
             ln -sfn /cache/downloads workdir/downloads
             echo "Using persistent download cache at /cache/downloads"
           else
@@ -94,6 +94,37 @@ jobs:
           fetch https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 pie-gsi aarch64-linux-android-4.9
           fetch https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 pie-gsi arm-linux-androideabi-4.9
           fetch https://android.googlesource.com/platform/external/avb android13-gsi avb
+
+          # Kernel: clone it here (with retries) so WireGuard can be seeded before the build tools run.
+          source ./deviceinfo
+          KDIR="$(basename "${deviceinfo_kernel_source%.git}")"
+          rm -rf "workdir/downloads/$KDIR"
+          fetch "$deviceinfo_kernel_source" "$deviceinfo_kernel_source_branch" "$KDIR"
+
+          # The ElementalX tree downloads wireguard-linux-compat from git.zx2c4.com at build time
+          # (scripts/fetch-latest-wireguard.sh), which fails often. Keep one copy in the cache, seed
+          # net/wireguard from it and touch .check so the script makes no network calls.
+          WG_VER=1.0.20220627
+          if [ ! -f "workdir/downloads/wireguard-src/version.h" ]; then
+            rm -rf workdir/downloads/wireguard-src; mkdir -p workdir/downloads/wireguard-src
+            for url in "https://git.zx2c4.com/wireguard-linux-compat/snapshot/wireguard-linux-compat-$WG_VER.tar.xz" \
+                       "https://github.com/WireGuard/wireguard-linux-compat/archive/refs/tags/v$WG_VER.tar.gz"; do
+              for i in 1 2 3; do
+                if curl -fsSL --connect-timeout 30 "$url" -o workdir/downloads/wg.tar && \
+                   tar -C workdir/downloads/wireguard-src --strip-components=2 -xf workdir/downloads/wg.tar "wireguard-linux-compat-$WG_VER/src"; then
+                  break 2
+                fi
+                echo "wireguard download from $url failed (attempt $i)"; sleep 15
+              done
+            done
+            rm -f workdir/downloads/wg.tar
+            [ -f workdir/downloads/wireguard-src/version.h ]
+          fi
+          rm -rf "workdir/downloads/$KDIR/net/wireguard"
+          cp -a workdir/downloads/wireguard-src "workdir/downloads/$KDIR/net/wireguard"
+          sed -i 's/tristate/bool/;s/default m/default y/;' "workdir/downloads/$KDIR/net/wireguard/Kconfig"
+          touch "workdir/downloads/$KDIR/net/wireguard/.check"
+          grep -h WIREGUARD_VERSION "workdir/downloads/$KDIR/net/wireguard/version.h"
           du -sh workdir/downloads/* 2>/dev/null || true
 
       - name: Build
