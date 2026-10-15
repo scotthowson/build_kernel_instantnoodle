@@ -83,7 +83,25 @@ actions, release via `forgejo-release`).
    (register once with `docker compose run --rm forgejo-runner forgejo-runner register ...` using
    the same flags as above, and edit `data/config.yml` as described.)
 
-3. Push this branch to git.howson.dev. The workflow label `docker` matches the runner label above.
+3. Optional but recommended: a persistent download cache. The job mounts `/srv/ut-build-cache`
+   from the host at `/cache` and keeps the clang and GCC toolchains and AVB there (about 2 GB),
+   so later runs skip the flaky Google downloads. Create the directory and allow the mount:
+
+   ```bash
+   sudo mkdir -p /srv/ut-build-cache && sudo chmod 777 /srv/ut-build-cache
+   ```
+
+   and in the runner's `config.yml`, under `container:`:
+
+   ```yaml
+   valid_volumes:
+     - /srv/ut-build-cache
+   ```
+
+   then `docker compose restart forgejo-runner`. Without this the build still works; the step
+   just downloads everything each time. The kernel source is never cached.
+
+4. Push this branch to git.howson.dev. The workflow label `docker` matches the runner label above.
    Manual runs: Actions → "Build Ubuntu Touch images" → Run workflow, tick *flashable* and *release*,
    optionally set *kernel_branch* (e.g. `Halium-10-Test`).
 

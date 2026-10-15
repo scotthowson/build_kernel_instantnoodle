@@ -38,7 +38,8 @@ jobs:
     runs-on: docker
     container:
       image: ubuntu:22.04
-      options: --privileged
+      # /srv/ut-build-cache on the runner host persists toolchain downloads between runs (optional)
+      options: --privileged -v /srv/ut-build-cache:/cache
     steps:
       - name: Install dependencies
         run: |
@@ -65,18 +66,35 @@ jobs:
       - name: Clone build tools
         run: git clone -b "$TOOLS_BRANCH" https://gitlab.com/ubports/porting/community-ports/halium-generic-adaptation-build-tools.git build
 
-      - name: Pre-fetch Google-hosted tooling (with retries)
-        # android.googlesource.com returns 503 now and then; the build tools skip the clone
-        # when the directory already exists, so fetch it here with retries first.
+      - name: Prepare download cache and pre-fetch tooling
+        # /cache is a host directory mounted via the container options (see RUNNER.md). Toolchains
+        # and tooling are kept there across runs; the kernel source and objects are always fresh.
+        # android.googlesource.com answers 503 / drops connections now and then, so clone with retries.
         run: |
-          mkdir -p workdir/downloads
-          for i in 1 2 3 4 5 6; do
-            [ -d workdir/downloads/avb ] && break
-            git clone --depth 1 --recursive -b android13-gsi \
-              https://android.googlesource.com/platform/external/avb workdir/downloads/avb && break
-            echo "clone failed (attempt $i), retrying in 30s"; rm -rf workdir/downloads/avb; sleep 30
-          done
-          [ -d workdir/downloads/avb ]
+          mkdir -p workdir
+          if [ -d /cache ] && [ -w /cache ]; then
+            mkdir -p /cache/downloads
+            rm -rf /cache/downloads/Ubuntu_ElementalX_OnePlus8 /cache/downloads/KERNEL_OBJ
+            ln -sfn /cache/downloads workdir/downloads
+            echo "Using persistent download cache at /cache/downloads"
+          else
+            mkdir -p workdir/downloads
+            echo "No /cache mount, downloads are not persisted"
+          fi
+          fetch() { # url branch dir
+            [ -d "workdir/downloads/$3" ] && { echo "$3 already present"; return 0; }
+            for i in 1 2 3 4 5 6; do
+              git clone --depth 1 --recursive -b "$2" "$1" "workdir/downloads/$3" && return 0
+              echo "clone of $3 failed (attempt $i), retrying in 30s"
+              rm -rf "workdir/downloads/$3"; sleep 30
+            done
+            return 1
+          }
+          fetch https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 android10-gsi linux-x86
+          fetch https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 pie-gsi aarch64-linux-android-4.9
+          fetch https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 pie-gsi arm-linux-androideabi-4.9
+          fetch https://android.googlesource.com/platform/external/avb android13-gsi avb
+          du -sh workdir/downloads/* 2>/dev/null || true
 
       - name: Build
         run: ./build/build.sh
