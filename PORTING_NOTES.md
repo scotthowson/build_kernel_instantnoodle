@@ -171,10 +171,12 @@ are deleted from the repo.
    messages in dmesg), the fallback is a qcacld-3.0 snapshot from an Android 10 CAF tag.
 2. After that build encrypts a fresh install, switch `overlay/system/etc/fscrypt.conf` to
    `"policy_version": "2"`.
-3. Punch hole: `halium.yaml` sets `CollapsedPanelHeight: 104` (hole at x 65-133, y 34-103 from the
-   OnePlus 8 framework overlay) so apps start below it. `DisplayCutouts*` were tried and removed:
-   Lomiri's PanelItemRow pushes an indicator that overlaps a cutout to the far side of it, and the
-   65 px left of the hole cannot fit an indicator, so the notifications indicator went off-screen.
+3. Punch hole: `halium.yaml` sets `CollapsedPanelHeight: 104` and `DisplayCutouts*` of 76 px at
+   x 61-137 (Android's overlay says 68 px at x 65-133; the ring drawn around the hole was slightly
+   small with that, so it was widened). Trade-off, by Lomiri's PanelItemRow design: an indicator
+   overlapping a cutout is pushed to the far side of it, and the strip left of the hole cannot fit
+   a whole indicator, so the leftmost one (notifications) can sit partly off-screen when the row is
+   full. Removing the `DisplayCutouts*` lines (keeping the panel height) brings it back if preferred.
    Lomiri also reads `udfpSensorRadius` (and related keys) for under-display fingerprint; relevant
    once the goodix UDFPS work in the kernel is wired to userspace.
 4. Note that all `etc/init/*.conf|override` and `usr/share/upstart/sessions/*` files are inert on
