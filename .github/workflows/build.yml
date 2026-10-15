@@ -108,6 +108,15 @@ jobs:
       - name: Build
         run: ./build/build.sh
 
+      - name: Extract partition images from the device tarball
+        # The build tools only leave the device tarball in out/; boot/recovery/dtbo live inside it
+        # under partitions/. The rootfs step also extracts them, but it does not run on every trigger.
+        run: |
+          for img in boot recovery dtbo; do
+            [ -f out/$img.img ] || tar -C out --strip-components=1 -xf out/device_instantnoodle.tar.xz partitions/$img.img
+          done
+          ls -l out
+
       - name: Upload boot artifacts
         uses: actions/upload-artifact@v4
         with:
