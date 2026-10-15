@@ -86,6 +86,14 @@ Reviewed on 2026-10-14 against:
 
 Kept as-is: `vendor/build.prop`, `device-hacks`, `sound-script`, `check-audio-mic`.
 
+## Diagnosis of the 2026-10-15 non-boot
+
+The journal of the failed boot shows systemd and lightdm running for 22 minutes with a black screen.
+The Android container never started: `lxc-start: Failed to mount "/dev/binderfs"`. The 24.04-2.x
+rootfs requires binderfs and the kernel has none (`drivers/android/binderfs.c` is absent; the
+`CONFIG_ANDROID_BINDERFS=n` line is a no-op). The overlay store mode also dropped most device files
+("doesn't exist, cannot overlay") and has been reverted. Kernel work is in `kernel/HANDOFF.md`.
+
 ## Things still to do, in order
 
 0. Kernel: `net/Kconfig` sources `net/wireguard/Kconfig`, and `scripts/fetch-latest-wireguard.sh`
