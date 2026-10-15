@@ -112,10 +112,17 @@ pieces were missing:
 
 - `wlan0` never appeared: the built-in driver waits for `echo ON > /dev/wlan` (the Android WiFi HAL's
   job on stock). `android-wlan-on.service` does it after `sys.boot_completed`, retrying until wlan0
-  exists. The old `etc/init/urfkill.override` (insmod of the vendor module) is removed.
+  exists. The old `etc/init/urfkill.override` (insmod of the vendor module) is removed. Verified on
+  the device: `echo ON > /dev/wlan` creates wlan0 and p2p0 within a few seconds. systemd then renamed
+  it to `wlp1s0` (PCIe naming); an empty `etc/udev/rules.d/80-net-setup-link.rules` masks the rename.
+  The driver uses a default MAC because `/mnt/vendor/persist/wlan_mac.bin` is empty on Ubuntu Touch
+  (stock's WiFi HAL writes it); deriving one from the Bluetooth address is a possible follow-up.
 - bluebinder sat in "Waiting for bluetooth service": the HAL runs as `vendor.bluetooth-1-0-qti` and a
   second bluetooth-named service exists, so the stock wait script's `uniq` check never settles.
   `bluebinder.service.d/override.conf` waits for `init.svc.vendor.bluetooth-1-0-qti=running` instead.
+  Verified on the device: with the wait skipped, bluebinder starts and `hci0` appears with the
+  OnePlus address. `bluebinder_post.sh` logs "Failed to get bluetooth address" but the HAL has
+  already set it; cosmetic.
 
 ## Things still to do, in order
 

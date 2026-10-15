@@ -1,0 +1,3 @@
+# Keep kernel interface names. The QCA6390 is a PCIe device, so systemd's predictable naming
+# renames wlan0 to wlp1s0, while Ubuntu Touch and the Android container expect wlan0.
+# An override with this name masks /usr/lib/udev/rules.d/80-net-setup-link.rules.
