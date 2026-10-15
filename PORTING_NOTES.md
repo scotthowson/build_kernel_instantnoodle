@@ -104,6 +104,19 @@ binder devices kept for the Android 10 container), and the overlay gained
 `usr/lib/systemd/system/android-binderfs.service`, which mounts binderfs on `/dev/binderfs` early so
 the container's bind mount has a source whether or not the rootfs marks it `optional`.
 
+## WiFi and Bluetooth on the in-tree driver kernel (2026-10-15)
+
+With qcacld-3.0 built into the kernel, the device boots, the container runs, cnss2 completes cold-boot
+calibration and loads amss20.bin / 12wlan.t0a / m3.bin via the container's ueventd. Two userspace
+pieces were missing:
+
+- `wlan0` never appeared: the built-in driver waits for `echo ON > /dev/wlan` (the Android WiFi HAL's
+  job on stock). `android-wlan-on.service` does it after `sys.boot_completed`, retrying until wlan0
+  exists. The old `etc/init/urfkill.override` (insmod of the vendor module) is removed.
+- bluebinder sat in "Waiting for bluetooth service": the HAL runs as `vendor.bluetooth-1-0-qti` and a
+  second bluetooth-named service exists, so the stock wait script's `uniq` check never settles.
+  `bluebinder.service.d/override.conf` waits for `init.svc.vendor.bluetooth-1-0-qti=running` instead.
+
 ## Things still to do, in order
 
 0. ~~WireGuard fetched from the network at build time.~~ Done: wireguard-linux-compat 1.0.20220627 is
