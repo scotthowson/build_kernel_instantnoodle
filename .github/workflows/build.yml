@@ -4,8 +4,9 @@
 #   - a GitHub Actions self-hosted runner registered to this repository with the label "self-hosted"
 #   - Docker (the job runs inside an ubuntu:22.04 container, like the UBports GitLab CI does)
 #
-# Artifacts: boot.img, recovery.img, dtbo.img, device tarball and, on manual runs with
-# "flashable" enabled, a compressed ubuntu.img (rootfs) ready for `fastboot flash system`.
+# Every run produces boot.img, recovery.img, dtbo.img, the device tarball and a compressed
+# ubuntu.img (rootfs), uploads them as an artifact and publishes them as a pre-release named
+# test-<run number>. A tag push (v*) publishes a full release instead.
 name: Build Ubuntu Touch images
 
 on:
@@ -18,7 +19,7 @@ on:
   workflow_dispatch:
     inputs:
       flashable:
-        description: "Also build the rootfs (ubuntu.img) from the latest 24.04 OTA"
+        description: "Build the rootfs (ubuntu.img) from the latest 24.04 OTA"
         type: boolean
         default: true
       build_tools_branch:
@@ -26,9 +27,9 @@ on:
         type: string
         default: main
       release:
-        description: "Publish the images as a GitHub pre-release (tag test-<run number>)"
+        description: "Publish the images as a pre-release (tag test-<run number>)"
         type: boolean
-        default: false
+        default: true
       kernel_branch:
         description: "Kernel branch to build instead of the one in deviceinfo (e.g. Halium-10-Test)"
         type: string
@@ -37,8 +38,8 @@ on:
 env:
   TOOLS_BRANCH: ${{ inputs.build_tools_branch || 'main' }}
   DEBIAN_FRONTEND: noninteractive
-  # rootfs is built on manual runs that ask for it and on every tagged release
-  FLASHABLE: ${{ (github.event_name == 'workflow_dispatch' && inputs.flashable) || startsWith(github.ref, 'refs/tags/v') }}
+  # the rootfs is built on every run; a manual run can untick "flashable" to skip it
+  FLASHABLE: ${{ github.event_name != 'workflow_dispatch' || inputs.flashable }}
 
 permissions:
   contents: write
@@ -176,7 +177,7 @@ jobs:
           path: out/ubuntu.img.zst
 
       - name: Publish GitHub release
-        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release)
+        if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.release)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('test-{0}', github.run_number) }}

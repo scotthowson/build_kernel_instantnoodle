@@ -118,9 +118,10 @@ Locally:
 ./build/system-image-from-ota.sh ota/ubuntu_command out   # out/rootfs.img
 ```
 
-CI: `.github/workflows/build.yml` runs the same steps on a self-hosted runner inside an
-`ubuntu:22.04` container (same package set as the UBports GitLab CI). Push to `android-10-testing`
-builds boot/recovery/dtbo and the device tarball. A manual run ("Run workflow") with
-*flashable* also produces `ubuntu.img.zst`, and with *release* publishes everything as a GitHub
-pre-release named `test-<run number>`. Pushing a tag `v*` builds everything and publishes a
-proper release. The runner only needs the GitHub Actions runner agent and Docker.
+CI: `.github/workflows/build.yml` (GitHub) and `.forgejo/workflows/build.yml` (Forgejo) run the same
+steps on a self-hosted runner inside an `ubuntu:22.04` container, the same package set as the UBports
+GitLab CI. Every run builds boot/recovery/dtbo, the device tarball and `ubuntu.img.zst`, uploads them
+as an artifact and publishes a pre-release `test-<run number>`. Pushing a tag `v*` publishes a full
+release. A manual run ("Run workflow") can untick *flashable* or *release*, and can set
+*kernel_branch* to build e.g. `Halium-10-Test`. The runner only needs the runner agent and Docker;
+see `RUNNER.md`.

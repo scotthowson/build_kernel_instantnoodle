@@ -12,13 +12,13 @@ on:
   workflow_dispatch:
     inputs:
       flashable:
-        description: "Also build the rootfs (ubuntu.img) from the latest 24.04 OTA"
+        description: "Build the rootfs (ubuntu.img) from the latest 24.04 OTA"
         type: boolean
         default: true
       release:
         description: "Publish the images as a pre-release (tag test-<run number>)"
         type: boolean
-        default: false
+        default: true
       kernel_branch:
         description: "Kernel branch to build instead of the one in deviceinfo"
         type: string
@@ -31,7 +31,7 @@ on:
 env:
   TOOLS_BRANCH: ${{ inputs.build_tools_branch || 'main' }}
   DEBIAN_FRONTEND: noninteractive
-  FLASHABLE: ${{ (github.event_name == 'workflow_dispatch' && inputs.flashable) || startsWith(github.ref, 'refs/tags/v') }}
+  FLASHABLE: ${{ github.event_name != 'workflow_dispatch' || inputs.flashable }}
 
 jobs:
   build:
@@ -161,7 +161,7 @@ jobs:
           path: release/
 
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release)
+        if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.release)
         uses: https://code.forgejo.org/actions/forgejo-release@v2
         with:
           direction: upload
