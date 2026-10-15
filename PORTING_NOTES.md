@@ -115,8 +115,10 @@ pieces were missing:
   exists. The old `etc/init/urfkill.override` (insmod of the vendor module) is removed. Verified on
   the device: `echo ON > /dev/wlan` creates wlan0 and p2p0 within a few seconds. systemd then renamed
   it to `wlp1s0` (PCIe naming); an empty `etc/udev/rules.d/80-net-setup-link.rules` masks the rename.
-  The driver uses a default MAC because `/mnt/vendor/persist/wlan_mac.bin` is empty on Ubuntu Touch
-  (stock's WiFi HAL writes it); deriving one from the Bluetooth address is a possible follow-up.
+  `instantnoodle-wlan-mac` (ExecStartPre of the unit) derives a per-device MAC from the Bluetooth
+  address and writes it to `persist/wlan_mac.bin` and `persist/qca6390/wlan_mac.bin`, which
+  `/vendor/firmware/wlan/qca_cld/wlan_mac.bin` links to; without it the driver uses one default MAC
+  on every device.
 - bluebinder sat in "Waiting for bluetooth service": the HAL runs as `vendor.bluetooth-1-0-qti` and a
   second bluetooth-named service exists, so the stock wait script's `uniq` check never settles.
   `bluebinder.service.d/override.conf` waits for `init.svc.vendor.bluetooth-1-0-qti=running` instead.
@@ -136,8 +138,9 @@ pieces were missing:
    messages in dmesg), the fallback is a qcacld-3.0 snapshot from an Android 10 CAF tag.
 2. After that build encrypts a fresh install, switch `overlay/system/etc/fscrypt.conf` to
    `"policy_version": "2"`.
-3. Add `DisplayCutouts*` to `halium.yaml` for the punch-hole camera once the panel geometry is
-   measured, as the Nord N100 port does.
+3. Display cutouts are now in `halium.yaml`, taken from the OnePlus 8 framework overlay
+   (`config_mainBuiltInDisplayCutout`: 68 px hole at x 65-133, y 34-103; 104 px status bar). If the
+   indicators still collide with the hole, adjust the x/width of the three rectangles.
 4. Note that all `etc/init/*.conf|override` and `usr/share/upstart/sessions/*` files are inert on
    24.04 (no upstart). They are kept for parity with the reference ports; MTP and tethering on 24.04
    go through usb-moded, which this overlay configures.

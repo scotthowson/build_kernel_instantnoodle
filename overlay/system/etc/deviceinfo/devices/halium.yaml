@@ -32,3 +32,13 @@ instantnoodle:
   OfonoPlugin: binder
   OfonoImplementsIms: true
   FilesystemEncryption: true
+  # Punch-hole camera, top left. From the OnePlus 8 framework overlay
+  # (config_mainBuiltInDisplayCutout): 68 px circle, x 65-133, y 34-103 on the 1080x2376 panel;
+  # Android clears it with a 104 px status bar. Rectangles are "x y width height" in pixels.
+  CollapsedPanelHeight: 104
+  DisplayCutoutsCollapsed:
+    - 65 0 68 104
+  DisplayCutoutsCollapsedLight:
+    - 65 0 68 104
+  DisplayCutoutsExpanded:
+    - 65 0 68 112

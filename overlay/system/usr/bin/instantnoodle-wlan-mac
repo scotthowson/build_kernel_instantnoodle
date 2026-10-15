@@ -1,0 +1,35 @@
+#!/bin/sh
+# Provide a per-device WLAN MAC for the in-kernel qcacld-3.0 driver.
+#
+# The driver requests the firmware file wlan/qca_cld/wlan_mac.bin, which on OnePlus 8 is a
+# symlink in /vendor/firmware into the persist partition. Stock Android's WiFi HAL writes that
+# file; nothing does on Ubuntu Touch, so the driver falls back to a built-in default MAC that
+# is identical on every device. Derive one from the Bluetooth address instead (same OUI, next
+# two addresses) and write it in the format qcacld expects.
+set -u
+PERSIST=/android/mnt/vendor/persist
+[ -d "$PERSIST" ] || PERSIST=/mnt/vendor/persist
+[ -d "$PERSIST" ] || { echo "persist not mounted, keeping default MAC"; exit 0; }
+
+bt=$(/usr/bin/getprop vendor.oem.bt.addr 2>/dev/null)
+[ -n "$bt" ] || bt=$(/usr/bin/getprop ro.boot.btmacaddr 2>/dev/null)
+[ -n "$bt" ] || bt=$(cat /sys/class/bluetooth/hci0/address 2>/dev/null)
+case "$bt" in
+    ??:??:??:??:??:??) ;;
+    *) echo "no Bluetooth address available, keeping default MAC"; exit 0 ;;
+esac
+
+hex=$(echo "$bt" | tr -d ':' | tr 'a-f' 'A-F')
+prefix=${hex%????}
+last=$(printf '%d' "0x${hex#??????????}")
+mac0=$(printf '%s%04X' "$prefix" $(( (last + 1) & 0xFFFF )))
+mac1=$(printf '%s%04X' "$prefix" $(( (last + 2) & 0xFFFF )))
+content=$(printf 'Intf0MacAddress=%s\nIntf1MacAddress=%s\nEND\n' "$mac0" "$mac1")
+
+for f in "$PERSIST/wlan_mac.bin" "$PERSIST/qca6390/wlan_mac.bin"; do
+    mkdir -p "$(dirname "$f")"
+    if [ "$(cat "$f" 2>/dev/null)" != "$content" ]; then
+        printf '%s\n' "$content" > "$f" && echo "wrote $f (Intf0 $mac0)"
+    fi
+done
+exit 0

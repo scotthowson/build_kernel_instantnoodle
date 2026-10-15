@@ -15,6 +15,7 @@ Type=oneshot
 RemainAfterExit=yes
 TimeoutStartSec=180
 ExecStartPre=/bin/sh -c 'for i in $(seq 1 90); do [ "$(/usr/bin/getprop sys.boot_completed 2>/dev/null)" = 1 ] && exit 0; sleep 1; done; echo "sys.boot_completed not seen, trying anyway"; exit 0'
+ExecStartPre=-/usr/bin/instantnoodle-wlan-mac
 ExecStart=/bin/sh -c 'up() { ls /sys/class/net | grep -q "^wl"; }; for i in 1 2 3 4 5; do up && { echo "wlan interface is up"; exit 0; }; echo ON > /dev/wlan 2>/dev/null; sleep 3; done; up || { echo "wlan interface did not appear"; exit 1; }'
 
 [Install]
