@@ -143,6 +143,9 @@ The first two installs came up unencrypted with no encryption step in the wizard
 showed "encryption not enabled on filesystem /userdata", i.e. the ext4 `encrypt` feature flag was
 missing because userdata had been formatted with `fastboot -w` / plain `mkfs.ext4`. Format from
 recovery with `mke2fs -t ext4 -O encrypt,quota` (see README) and the wizard offers encryption.
+With a filesystem already on the partition the recovery holds `sda24` without any visible mount
+(`umount /data` says "Invalid argument", `mke2fs` says "is mounted"); `fastboot erase userdata`
+first clears that. Verified 2026-10-16: the fresh filesystem lists `encrypt` and `quota`.
 Policy v2 is to be confirmed on the first install made that way. The
 `pam_fscrypt ... setting groups: operation not permitted` journal line is the lock screen's PAM
 stack on an unencrypted home and is harmless.

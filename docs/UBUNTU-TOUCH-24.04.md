@@ -52,9 +52,12 @@ kernel or the overlay next. Everything here was verified on the device unless ma
 ## 4. Installing for a test
 
 ```sh
-adb reboot recovery
-adb shell umount /data 2>/dev/null
+adb reboot bootloader
+fastboot erase userdata                 # the recovery holds an existing fs, mke2fs would say "is mounted"
+fastboot reboot recovery
+adb wait-for-recovery
 adb shell mke2fs -t ext4 -O encrypt,quota -F /dev/block/bootdevice/by-name/userdata   # encrypt flag!
+adb shell tune2fs -l /dev/block/bootdevice/by-name/userdata | grep -i features        # must list encrypt
 adb reboot bootloader
 fastboot flash boot boot.img
 fastboot flash dtbo dtbo.img

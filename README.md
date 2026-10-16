@@ -81,13 +81,18 @@ and can build another kernel branch. Runner setup, caching and the Forgejo speci
 Prerequisites: unlocked bootloader, OxygenOS 10 firmware on both slots (Android 10 vendor is
 what the container runs), `adb` and `fastboot` on the PC, and the files from a release.
 
-1. Format userdata from recovery **with the `encrypt` feature**. `fastboot -w` and a plain
-   `mkfs.ext4` leave it out and the wizard then silently skips encryption:
+1. Format userdata **with the `encrypt` feature**. `fastboot -w` and a plain `mkfs.ext4` leave
+   it out and the wizard then silently skips encryption. Erase from fastboot first: with an
+   existing filesystem on the partition the recovery holds the device (even though `mount`
+   shows nothing) and `mke2fs` refuses with "is mounted".
 
    ```sh
-   adb reboot recovery
-   adb shell umount /data 2>/dev/null
+   adb reboot bootloader
+   fastboot erase userdata
+   fastboot reboot recovery
+   adb wait-for-recovery
    adb shell mke2fs -t ext4 -O encrypt,quota -F /dev/block/bootdevice/by-name/userdata
+   adb shell tune2fs -l /dev/block/bootdevice/by-name/userdata | grep -i features   # must list encrypt
    ```
 
 2. Free space in `super` once (first install only):
