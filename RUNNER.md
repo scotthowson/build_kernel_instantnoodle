@@ -104,7 +104,9 @@ actions, release via `forgejo-release`).
 4. Push this branch to git.howson.dev. The workflow label `docker` matches the runner label above.
    Every push to `android-10-testing` builds the full set and publishes a pre-release. Manual runs:
    Actions → "Build Ubuntu Touch images" → Run workflow; untick *flashable* or *release* to skip
-   those parts, or set *kernel_branch* (e.g. `Halium-10-Test`).
+   those parts, set *kernel_branch* (e.g. `Halium-10-stable`), and optionally *release_name* and
+   *release_tag* to name the release (blank gives `Test build <n>` / `test-<n>`; a pushed `v*` tag
+   always wins).
 
 Releases on Forgejo are created by the workflow with the repository's own `GITHUB_TOKEN`; no extra
 secret is needed. If the public URL is behind an authenticating proxy (the runner ping returned 401),

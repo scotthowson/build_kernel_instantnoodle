@@ -27,11 +27,19 @@ on:
         type: string
         default: main
       release:
-        description: "Publish the images as a pre-release (tag test-<run number>)"
+        description: "Publish the images as a release (pre-release unless a v* tag was pushed)"
         type: boolean
         default: true
       kernel_branch:
         description: "Kernel branch to build instead of the one in deviceinfo (e.g. Halium-10-Test)"
+        type: string
+        default: ""
+      release_name:
+        description: "Release title (blank = Test build <run number>)"
+        type: string
+        default: ""
+      release_tag:
+        description: "Release tag (blank = test-<run number>; must be a valid git tag name)"
         type: string
         default: ""
 
@@ -48,6 +56,11 @@ jobs:
   build:
     name: Kernel, boot, recovery, device tarball
     runs-on: [self-hosted]
+    env:
+      # Release naming in one place. A pushed v* tag always wins; a manual run may set a
+      # title and tag; otherwise test-<run number> / Test build <run number>.
+      REL_TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || (inputs.release_tag != '' && inputs.release_tag || format('test-{0}', github.run_number)) }}
+      REL_TITLE: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || (inputs.release_name != '' && inputs.release_name || format('Test build {0}', github.run_number)) }}
     container:
       image: ubuntu:22.04
       # losetup/mount inside system-image-from-ota.sh need a privileged container
@@ -156,20 +169,21 @@ jobs:
         if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.release)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('test-{0}', github.run_number) }}
-          name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('Test build {0}', github.run_number) }}
+          tag_name: ${{ env.REL_TAG }}
+          name: ${{ env.REL_TITLE }}
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           body: |
             Ubuntu Touch 24.04 (Halium 10) images for OnePlus 8 (instantnoodle), built from ${{ github.sha }}.
 
-            Flash from fastbootd (`adb reboot fastboot`):
+            Install guide: docs/INSTALL.md. Update of an existing install (slot A):
             ```
-            fastboot flash boot boot.img
-            fastboot flash dtbo dtbo.img
-            fastboot flash recovery recovery.img
-            zstd -d ubuntu.img.zst && fastboot flash system ubuntu.img
+            fastboot flash boot_a boot.img            # bootloader
+            fastboot flash dtbo_a dtbo.img
+            fastboot flash recovery_a recovery.img
+            fastboot reboot fastboot
+            zstd -d ubuntu.img.zst && fastboot flash system_a ubuntu.img   # fastbootd
             ```
           files: |
             out/boot.img
