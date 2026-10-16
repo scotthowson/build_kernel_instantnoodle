@@ -43,6 +43,7 @@ The full history, diagnoses and the ordered to-do list are in [`PORTING_NOTES.md
 | `tools/download-recovery-images.sh` | Fetches third-party recovery images for flashing; not used by the build |
 | `.forgejo/workflows/`, `.github/workflows/` | CI that builds and publishes releases on a self-hosted runner |
 | `kernel/` | Notes on the `Halium-10` kernel branch and the handoff log with the kernel work |
+| `docs/INSTALL.md` | Install guide for users and testers |
 | `docs/UBUNTU-TOUCH-24.04.md` | What 24.04 changes for a Halium 10 port and how this port handles it |
 | `RUNNER.md` | Setting up the GitHub or Forgejo runner |
 
@@ -78,57 +79,28 @@ and can build another kernel branch. Runner setup, caching and the Forgejo speci
 
 ## Installing
 
-Prerequisites: unlocked bootloader, OxygenOS 10 firmware on both slots (Android 10 vendor is
-what the container runs), `adb` and `fastboot` on the PC, and the files from a release.
-
-1. Format userdata **with the `encrypt` feature**. `fastboot -w` and a plain `mkfs.ext4` leave
-   it out and the wizard then silently skips encryption. Erase from fastboot first: with an
-   existing filesystem on the partition the recovery holds the device (even though `mount`
-   shows nothing) and `mke2fs` refuses with "is mounted".
-
-   ```sh
-   adb reboot bootloader
-   fastboot erase userdata
-   fastboot reboot recovery
-   adb wait-for-recovery
-   adb shell mke2fs -t ext4 -O encrypt,quota -F /dev/block/bootdevice/by-name/userdata
-   adb shell tune2fs -l /dev/block/bootdevice/by-name/userdata | grep -i features   # must list encrypt
-   ```
-
-2. Free space in `super` once (first install only):
-
-   ```sh
-   adb reboot bootloader
-   fastboot reboot fastboot
-   fastboot delete-logical-partition system_ext_a
-   fastboot delete-logical-partition system_ext_b
-   fastboot delete-logical-partition product_a
-   fastboot delete-logical-partition product_b
-   fastboot delete-logical-partition system_b
-   fastboot delete-logical-partition vendor_b
-   fastboot delete-logical-partition odm_b
-   ```
-
-3. Flash:
-
-   ```sh
-   fastboot reboot bootloader
-   fastboot flash boot boot.img
-   fastboot flash dtbo dtbo.img
-   fastboot flash recovery recovery.img
-   fastboot flash vbmeta --disable-verity --disable-verification vbmeta.img
-   fastboot reboot fastboot
-   zstd -d ubuntu.img.zst
-   fastboot flash system ubuntu.img
-   fastboot reboot
-   ```
-
-To add the `encrypt` feature to an existing install without wiping (for apps using fscrypt
-directly; the wizard will not run again):
+The full guide, with both an encrypted and an unencrypted path, updating, switching between the
+two and troubleshooting, is [`docs/INSTALL.md`](docs/INSTALL.md). The short version for an
+encrypted fresh install:
 
 ```sh
-adb shell tune2fs -O encrypt /dev/block/bootdevice/by-name/userdata   # from recovery, /data unmounted
+adb reboot bootloader
+fastboot erase userdata                       # recovery otherwise holds the old fs
+fastboot reboot recovery && adb wait-for-recovery
+adb shell mke2fs -t ext4 -O encrypt,quota -F /dev/block/bootdevice/by-name/userdata
+adb reboot bootloader
+fastboot flash boot boot.img
+fastboot flash dtbo dtbo.img
+fastboot flash recovery recovery.img
+fastboot flash vbmeta --disable-verity --disable-verification vbmeta.img
+fastboot reboot fastboot                      # fastbootd; first install: delete the unused logical partitions here
+zstd -d ubuntu.img.zst && fastboot flash system ubuntu.img
+fastboot reboot
 ```
+
+For an unencrypted install replace the first four lines with `fastboot format userdata`.
+`fastboot -w` and plain `mkfs.ext4` do not set the ext4 `encrypt` feature, and the wizard then
+silently skips encryption.
 
 ## Getting at the device
 
@@ -142,6 +114,8 @@ adb shell tune2fs -O encrypt /dev/block/bootdevice/by-name/userdata   # from rec
 
 - [`PORTING_NOTES.md`](PORTING_NOTES.md): review of the port, every fix with its reason, device
   findings, fingerprint status, ordered to-do list.
+- [`docs/INSTALL.md`](docs/INSTALL.md): install guide, encrypted and unencrypted, updating,
+  troubleshooting.
 - [`docs/UBUNTU-TOUCH-24.04.md`](docs/UBUNTU-TOUCH-24.04.md): 24.04 reference for this device
   (boot chain, overlay files, install, access, logs, kernel requirements).
 - [`kernel/README.md`](kernel/README.md) and [`kernel/HANDOFF.md`](kernel/HANDOFF.md): what the

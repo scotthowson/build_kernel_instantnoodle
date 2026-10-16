@@ -51,25 +51,12 @@ kernel or the overlay next. Everything here was verified on the device unless ma
 
 ## 4. Installing for a test
 
-```sh
-adb reboot bootloader
-fastboot erase userdata                 # the recovery holds an existing fs, mke2fs would say "is mounted"
-fastboot reboot recovery
-adb wait-for-recovery
-adb shell mke2fs -t ext4 -O encrypt,quota -F /dev/block/bootdevice/by-name/userdata   # encrypt flag!
-adb shell tune2fs -l /dev/block/bootdevice/by-name/userdata | grep -i features        # must list encrypt
-adb reboot bootloader
-fastboot flash boot boot.img
-fastboot flash dtbo dtbo.img
-fastboot flash recovery recovery.img
-fastboot flash vbmeta --disable-verity --disable-verification vbmeta.img
-fastboot reboot fastboot
-fastboot flash system ubuntu.img        # from ubuntu.img.zst in the release
-fastboot reboot
-```
-
-`fastboot -w` must not be used for the wipe: it formats userdata without the `encrypt` feature and
-the wizard will silently skip encryption.
+The step-by-step guide is `docs/INSTALL.md`. The one thing that matters for this document: the
+wizard offers home encryption only when userdata's ext4 filesystem has the `encrypt` feature.
+`fastboot -w` and `fastboot format` do not set it; `mke2fs -t ext4 -O encrypt,quota` from recovery
+does, after `fastboot erase userdata` (the recovery otherwise holds the old filesystem and
+`mke2fs` refuses with "is mounted"). For an unencrypted debugging install, `fastboot format
+userdata` is enough.
 
 ## 5. Getting at the device
 
