@@ -79,28 +79,30 @@ and can build another kernel branch. Runner setup, caching and the Forgejo speci
 
 ## Installing
 
-The full guide, with both an encrypted and an unencrypted path, updating, switching between the
-two and troubleshooting, is [`docs/INSTALL.md`](docs/INSTALL.md). The short version for an
-encrypted fresh install:
+The full guide is [`docs/INSTALL.md`](docs/INSTALL.md): encrypted and unencrypted paths,
+bootloader vs fastbootd, updates that keep data, kernel-only flashes, `fastboot boot` tests,
+button combinations and troubleshooting. The short version for an encrypted fresh install
+(slot A, logical partitions already trimmed as the guide describes):
 
 ```sh
 adb reboot bootloader
+fastboot set_active a
 fastboot erase userdata                       # recovery otherwise holds the old fs
 fastboot reboot recovery && adb wait-for-recovery
 adb shell mke2fs -t ext4 -O encrypt,quota -F /dev/block/bootdevice/by-name/userdata
 adb reboot bootloader
-fastboot flash boot boot.img
-fastboot flash dtbo dtbo.img
-fastboot flash recovery recovery.img
-fastboot flash vbmeta --disable-verity --disable-verification vbmeta.img
-fastboot reboot fastboot                      # fastbootd; first install: delete the unused logical partitions here
-zstd -d ubuntu.img.zst && fastboot flash system ubuntu.img
+fastboot flash boot_a boot.img
+fastboot flash dtbo_a dtbo.img
+fastboot flash recovery_a recovery.img
+fastboot flash vbmeta_a --disable-verity --disable-verification vbmeta.img
+fastboot reboot fastboot                      # fastbootd
+zstd -d ubuntu.img.zst && fastboot flash system_a ubuntu.img
 fastboot reboot
 ```
 
-For an unencrypted install replace the first four lines with `fastboot format userdata`.
-`fastboot -w` and plain `mkfs.ext4` do not set the ext4 `encrypt` feature, and the wizard then
-silently skips encryption.
+For an unencrypted install replace the recovery lines with `fastboot format:ext4 userdata`.
+`fastboot -w`, `fastboot format` and plain `mkfs.ext4` do not set the ext4 `encrypt` feature, and
+the wizard then silently skips encryption.
 
 ## Getting at the device
 
